@@ -10,8 +10,11 @@ import xlrd
 import pymongo
 from xlutils.copy import copy
 import db
+import os
 
-API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
+API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
+# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -61,6 +64,8 @@ def send_welcome(message):
 You can change the language to English by pressing /english!
 \
 """)
+    userObj = db.getUser(message.chat.id, message.from_user.id)
+    print(userObj)
     if message.from_user.id not in user_id:
         user_id.append(message.from_user.id)
         w_sheet.write(len(user_id), 0, message.from_user.id)
@@ -104,22 +109,31 @@ def revise_bet(message):
     show_games(message)
 
 
-@bot.message_handler(commands=['openbets'])
+@bot.message_handler(commands=['openbets', 'changebet'])
 def show_games(message):
     markup = types.ReplyKeyboardMarkup()
-    ind = user_id.index(message.from_user.id)
-    for i in range(N):
-        if games_to_bet[ind][i] == 1:
-            itembtn1 = games[i]
-            markup.row(itembtn1)
-    #itembtn1 = types.KeyboardButton(game1)
-    #itembtn2 = types.KeyboardButton('لیتوانی - ایران')
-    # itembtn3 = types.KeyboardButton('ایران - مراکش')
-    # itembtn4 = types.KeyboardButton('اسپانیا - پرتغال')
-    #markup.row(itembtn)
-    #markup.row(itembtn2)
-    # markup.row(itembtn3)
-    # markup.row(itembtn4)
+    userObj = db.getUser(message.chat.id, message.from_user.id)
+    if message.text == '/openbets':
+        wantToHaveNewBet = True
+        wantToChangeBet = False
+    else:
+        wantToHaveNewBet = False
+        wantToChangeBet = True
+    matches = db.loadOpenMatches()
+
+    openBets = []
+    for match in matches:
+        alreadyBet = False
+        for bet in userObj['bets']:
+            if bet['matchId'] == match['matchId']:
+                alreadyBet = True
+                break
+        if (alreadyBet and wantToChangeBet) or (not alreadyBet and wantToHaveNewBet):
+            openBets.append(match)
+
+    for Obet in openBets:
+        itembtn1 = Obet['flags']
+        markup.row(itembtn1)
     bot.send_message(chat_id=message.from_user.id, text= """\
     لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:
     Please choose the game you want to bet on:
@@ -201,62 +215,102 @@ def make_table(message):
 
 @bot.message_handler(func=lambda message: True)
 def bet_time(message):
+    userObj = db.getUser(message.chat.id, message.from_user.id)
+    print(userObj)
     thisUserId = message.from_user.id
-    thisChatId = thisUserId
+    thisChatId = message.chat.id
 
     print('here1')
-    lang = db.getLang(thisChatId, thisUserId)
+    lang = db.getLang(message.chat.id, message.from_user.id)
     print('here')
     print(lang)
 
-    if message.from_user.id not in user_id:
-        bot.send_message(message.from_user.id, 'Please Press /start!')
-        return 0
-    global admin_mode
-    if 'sepehr' not in message.text:
-        global bet_game
+    if 'updategame' not in message.text:
         if '-' in message.text:
-            for i in range(N):
-                if message.text == games[i]:
-                    bet_game = i
-            #print("game to bet : " + str(bet_game))
+            matches = db.loadOpenMatches()
+            for m in matches:
+                if m['flags'] == message.text:
+                    updateObj = {
+                        '$set': {'toBetMatchId': m['matchId']}
+                    }
+                    db.setUserFields(thisChatId, thisUserId, updateObj)
             show_bets(message)
         elif ':' in message.text:
-            ind = user_id.index(message.from_user.id)
-            bets[ind][bet_game] = message.text
-            games_to_bet[ind][bet_game] = 0
-            #print(bets[ind][bet_game])
-            #print(np.sum(games_to_bet[ind]))
-            if np.sum(games_to_bet[ind]) != 0:
+            matches = db.loadOpenMatches()
+            matchId = userObj['toBetMatchId']
+            bets = userObj['bets']
+
+            betValue = message.text
+
+            isNewBet = True
+            for i in range(len(bets)):
+                if bets[i]['matchId'] == matchId:
+                    bets[i]['value'] = betValue
+                    isNewBet = False
+                    break
+            if isNewBet:
+                bets.append({
+                    'matchId': matchId,
+                    'value': betValue
+                })
+
+            updateObj = {
+                '$set': {'bets': bets}
+            }
+            db.setUserFields(thisChatId, thisUserId, updateObj)
+
+            openBets = []
+            for match in matches:
+                alreadyBet = False
+                for bet in userObj['bets']:
+                    if bet['matchId'] == match['matchId']:
+                        alreadyBet = True
+                        break
+                if not alreadyBet:
+                    openBets.append(match)
+                    break
+
+            if len(openBets) != 0:
                 show_games(message)
             else:
                 markup = types.ReplyKeyboardRemove(selective=False)
                 bot.send_message(message.from_user.id, text="""\
-                همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /bet را انتخاب کنید.
+                همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
                 \
                 """, reply_markup=markup)
-    elif 'farbod' not in message.text: #For Final Score only 'sepehr' in text
-        game_score = int(message.text[0:2])
-        print(game_score)
-        # final_scores[game_score]="message.text[2]:message.text[3]"
-        final_home = int(message.text[2])
-        print("final_home " + str(final_home))
-        final_away = int(message.text[3])
-        print("final_away " + str(final_away))
-        print(len(user_id))
-        for i in range(len(user_id)):
-            bet_temp = bets[i][game_score]
-            home = int(bet_temp[0])
-            print("home " + str(home))
-            away = int(bet_temp[2])
-            print("away " + str(away))
-            if home == final_home & away == final_away:
-                total_score[i] = total_score[i] + 10
-            elif home-away == final_home - final_away:
-                total_score[i] = total_score[i] + 7
-            elif (home-away)*(final_home-final_away) > 0:
-                total_score[i] = total_score[i] + 5
-        print(total_score)
+    elif 'farbod' not in message.text: #For Final Score only 'updategame' in text
+
+        commandParts = message.text.split(' ')
+        print(commandParts)
+        matchId = commandParts[1]
+        matchObj = {
+            'matchId': matchId,
+            'result': commandParts[2],
+            'flags': commandParts[3]
+        }
+        db.updateMatch(matchId, matchObj)
+        db.updateUserScores()
+        # game_score = int(message.text[0:2])
+        # print(game_score)
+        # # final_scores[game_score]="message.text[2]:message.text[3]"
+        # final_home = int(message.text[2])
+        # print("final_home " + str(final_home))
+        # final_away = int(message.text[3])
+        # print("final_away " + str(final_away))
+        # print(len(user_id))
+        # for i in range(len(user_id)):
+        #     bet_temp = bets[i][game_score]
+        #     home = int(bet_temp[0])
+        #     print("home " + str(home))
+        #     away = int(bet_temp[2])
+        #     print("away " + str(away))
+        #     if home == final_home & away == final_away:
+        #         total_score[i] = total_score[i] + 10
+        #     elif home-away == final_home - final_away:
+        #         total_score[i] = total_score[i] + 7
+        #     elif (home-away)*(final_home-final_away) > 0:
+        #         total_score[i] = total_score[i] + 5
+        # print(total_score)
         admin_mode = 0
     else:
         game_close = int(message.text[0:2])
@@ -303,11 +357,6 @@ def show_bets(message):
     # bet = bot.get_updates()
     # print("bet is" + bet)
 
-
-@bot.message_handler(commands=['sepehr'])
-def admin_sepehr(message):
-    global admin_mode
-    admin_mode = 1
 
 def send_welcome_english(userid):
     bot.send_message(userid, """\
