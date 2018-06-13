@@ -163,6 +163,8 @@ def set_language(message):
 def group_message(message):
     chatObj = db.getChat(message.chat.id)
     usersThisChat = chatObj['users']
+    if usersThisChat == []:
+        bot.send_message(message.chat.id,"To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.")
     if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
         usersThisChat.append(message.from_user.id)
         updateObj = {
@@ -183,6 +185,8 @@ def group_message(message):
 def group_message(message):
     chatObj = db.getChat(message.chat.id)
     usersThisChat = chatObj['users']
+    if usersThisChat == []:
+        bot.send_message(message.chat.id,"To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.")
     if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
         usersThisChat.append(message.from_user.id)
         updateObj = {
