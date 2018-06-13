@@ -7,7 +7,9 @@ import numpy as np
 from telebot import types
 import xlwt
 import xlrd
+import pymongo
 from xlutils.copy import copy
+import db
 
 API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
 
@@ -21,7 +23,7 @@ cnt = 0
 user_id = []
 group_id = []
 group_user = [[0]]
-language = [1]
+language = ["fa"]
 N = 4 #Number of Games
 bets = [[0 for x in range(N)]]
 games_to_bet = [[1 for x in range(N)]]
@@ -143,9 +145,10 @@ def choose_language(message):
 
 @bot.message_handler(commands=['english'])
 def set_language(message):
+    db.setLang(message.from_user.id, message.from_user.id, "en")
     if message.chat.type == 'private':
         ind = user_id.index(message.from_user.id)
-        language[ind] = 2
+        language[ind] = "en"
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(message.from_user.id, "You chose English!", reply_markup=markup)
         send_welcome_english(message.from_user.id)
@@ -153,9 +156,10 @@ def set_language(message):
 
 @bot.message_handler(func=lambda message: message.text == 'فارسی')
 def set_language(message):
+    db.setLang(message.from_user.id, message.from_user.id, "fa")
     if message.chat.type == 'private':
         ind = user_id.index(message.from_user.id)
-        language[ind] = 1
+        language[ind] = "fa"
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(message.from_user.id, "زبان فارسی انتخاب شد!", reply_markup=markup)
 
@@ -197,6 +201,14 @@ def make_table(message):
 
 @bot.message_handler(func=lambda message: True)
 def bet_time(message):
+    thisUserId = message.from_user.id
+    thisChatId = thisUserId
+
+    print('here1')
+    lang = db.getLang(thisChatId, thisUserId)
+    print('here')
+    print(lang)
+
     if message.from_user.id not in user_id:
         bot.send_message(message.from_user.id, 'Please Press /start!')
         return 0
