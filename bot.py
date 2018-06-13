@@ -12,11 +12,18 @@ from xlutils.copy import copy
 import db
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
 # API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
+
+logger.info("TG bot ready (API key: {})!".API_TOKEN)
 
 rb = xlrd.open_workbook('WorldCupExcel.xls')
 wb = copy(rb)

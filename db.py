@@ -21,6 +21,8 @@ userCollection = db['user']
 chatCollection = db['chat']
 matchCollection = db['match']
 
+logger.info("DB ready!")
+
 
 def loadOpenMatches():
     filterObj = {
