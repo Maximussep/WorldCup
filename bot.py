@@ -57,6 +57,11 @@ You can change the language to English by pressing /english!
 \
 """)
     userObj = db.getUser(message.chat.id, message.from_user.id)
+    if userObj['first'] == []:
+        updateObj = {
+            '$set': {'first': message.from_user.first_name, 'last': message.from_user.last_name}
+        }
+        db.setUserFields(thisChatId, thisUserId, updateObj)
     print(userObj)
 
 
