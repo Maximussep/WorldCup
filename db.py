@@ -145,7 +145,7 @@ def getOptions(chatId, userId):
     return optionsCollection.find_one(filterObj)
 
 
-def setLang(chatId, userId, lang="en"):
+def setLang(chatId, userId, lang):
     filterObj = {
         # "userId": userId,
         "chatId": chatId
@@ -166,6 +166,7 @@ def getLang(chatId, userId):
     else:
         lang = opts['lang']
     return lang
+
 
 def updateUserScores():
     pass

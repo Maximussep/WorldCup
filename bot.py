@@ -145,7 +145,7 @@ def choose_language(message):
 
 
 @bot.message_handler(commands=['english'])
-def set_language(message):
+def set_english(message):
     db.setLang(message.from_user.id, message.from_user.id, "en")
     markup = types.ReplyKeyboardRemove(selective=False)
     bot.send_message(message.from_user.id, "You chose English!", reply_markup=markup)
