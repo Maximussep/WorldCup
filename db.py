@@ -9,8 +9,8 @@ from pymongo import MongoClient
 
 client = MongoClient()
 
-MongoDB_URI = os.environ['MONGODB_URI']
-# MongoDB_URI = 'mongodb://localhost:27017/testdb'
+# MongoDB_URI = os.environ['MONGODB_URI']
+MongoDB_URI = 'mongodb://localhost:27017/testdb'
 DB_NAME = MongoDB_URI.split('/')[-1]
 
 client = MongoClient(MongoDB_URI)
@@ -55,7 +55,19 @@ def getUser(chatId, userId):
     userObj = userCollection.find_one(filterObj)
     if userObj == None:
         updateObj = {
-            '$set': {'userId': userId, 'bets': [], 'score': 0, 'toBetMatchId': '', 'lang': "fa"}
+            '$set': {'userId': userId, 'first': [], 'last': [], 'bets': [], 'score': 0, 'toBetMatchId': '', 'lang': "fa"}
+        }
+        setUserFields(chatId, userId, updateObj)  # set the default values for the user
+        userObj = userCollection.find_one(filterObj)
+    if 'first' not in userObj.keys():
+        updateObj = {
+            '$set': {'first': []}
+        }
+        setUserFields(chatId, userId, updateObj)  # set the default values for the user
+        userObj = userCollection.find_one(filterObj)
+    if 'last' not in userObj.keys():
+        updateObj = {
+            '$set': {'last': []}
         }
         setUserFields(chatId, userId, updateObj)  # set the default values for the user
         userObj = userCollection.find_one(filterObj)
