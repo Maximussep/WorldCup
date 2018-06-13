@@ -101,12 +101,12 @@ def instructions(message):
 def show_games(message):
     markup = types.ReplyKeyboardMarkup()
     userObj = db.getUser(message.chat.id, message.from_user.id)
-    if message.text == '/openbets':
-        wantToHaveNewBet = True
-        wantToChangeBet = False
-    else:
+    if message.text == '/changebet':
         wantToHaveNewBet = False
         wantToChangeBet = True
+    else:
+        wantToHaveNewBet = True
+        wantToChangeBet = False
     matches = db.loadOpenMatches()
 
     openBets = []
