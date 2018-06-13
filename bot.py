@@ -57,11 +57,6 @@ You can change the language to English by pressing /english!
 \
 """)
     userObj = db.getUser(message.chat.id, message.from_user.id)
-    if userObj['first'] == []:
-        updateObj = {
-            '$set': {'first': message.from_user.first_name, 'last': message.from_user.last_name}
-        }
-        db.setUserFields(message.chat.id, message.from_user.id, updateObj)
     print(userObj)
 
 
@@ -234,11 +229,6 @@ def bet_time(message):
     userObj = db.getUser(message.chat.id, message.from_user.id)
     thisUserId = message.from_user.id
     thisChatId = message.chat.id
-    if userObj['first'] == []:
-        updateObj = {
-            '$set': {'first': message.from_user.first_name, 'last': message.from_user.last_name}
-        }
-        db.setUserFields(thisChatId, thisUserId, updateObj)
     lang = db.getLang(message.chat.id, message.from_user.id)
     if 'updategame' not in message.text:
         if '-' in message.text:
