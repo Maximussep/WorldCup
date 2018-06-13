@@ -23,7 +23,7 @@ API_TOKEN = os.environ['TELEGRAM_TOKEN']
 
 bot = telebot.TeleBot(API_TOKEN)
 
-logger.info("TG bot ready (API key: {})!".API_TOKEN)
+logger.info("TG bot ready (API key: {})!".format(API_TOKEN))
 
 rb = xlrd.open_workbook('WorldCupExcel.xls')
 wb = copy(rb)
