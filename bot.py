@@ -91,8 +91,10 @@ def instructions(message):
     else:
         bot.reply_to(message, """\
         Add /WorldCup1818bot to your groups and compete with your family and friends.
-        You can start betting by pressing /openbets.
-        For group stage, you will earn 10 points if you get the exact right score, 7 points for guessing the difference right and 5 points if you only get the winner right.
+        
+You can start betting by pressing /openbets.
+        
+For group stage, you will earn 10 points if you get the exact right score, 7 points for guessing the difference right and 5 points if you only get the winner right.
         \
         """)
 
@@ -139,23 +141,31 @@ def ImIn(message):
 def choose_language(message):
     markup = types.ReplyKeyboardMarkup()
     itembtnfar = types.KeyboardButton('فارسی')
-    itembtneng = types.KeyboardButton('English')
+    itembtneng = types.KeyboardButton('/english')
     markup.row(itembtnfar, itembtneng)
     bot.send_message(chat_id=message.chat.id, text="Please choose your preferred language:", reply_markup=markup)
 
 
 @bot.message_handler(commands=['english'])
 def set_english(message):
-    db.setLang(message.from_user.id, message.from_user.id, "en")
+    db.setLang(message.chat.id, message.from_user.id, "en")
     markup = types.ReplyKeyboardRemove(selective=False)
-    bot.send_message(message.from_user.id, "You chose English!", reply_markup=markup)
+    updateObj = {
+        '$set': {'lang': "en"}
+    }
+    db.setUserFields(message.chat.id, message.from_user.id, updateObj)
+    bot.send_message(message.chat.id, "Sure, I'll speak to you in English! \nYou can press /help for bot instruction. \nYou can press /openbets to start betting.", reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: message.text == 'فارسی')
 def set_language(message):
-    db.setLang(message.from_user.id, message.from_user.id, "fa")
+    db.setLang(message.chat.id, message.from_user.id, "fa")
+    updateObj = {
+        '$set': {'lang': "fa"}
+    }
+    db.setUserFields(message.chat.id, message.from_user.id, updateObj)
     markup = types.ReplyKeyboardRemove(selective=False)
-    bot.send_message(message.from_user.id, "زبان فارسی انتخاب شد!", reply_markup=markup)
+    bot.send_message(message.chat.id, "زبان بات فارسی انتخاب شد!", reply_markup=markup)
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
@@ -187,7 +197,11 @@ def group_message(message):
     chatObj = db.getChat(message.chat.id)
     usersThisChat = chatObj['users']
     if usersThisChat == []:
-        bot.send_message(message.chat.id,"To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.")
+        bot.send_message(message.chat.id,""""/
+        برای پیش‌بینی نتایج بازی‌های جام‌جهانی به @WorldCup1818bot رفته و برای رقابت با دیگر اعضای گروه /ImIn را فشار دهید.
+         
+        To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
+        /""")
     if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
         usersThisChat.append(message.from_user.id)
         updateObj = {
@@ -286,6 +300,7 @@ def bet_time(message):
 
 
 def show_bets(message):
+    userObj = db.getUser(message.chat.id, message.from_user.id)
     markup = types.ReplyKeyboardMarkup()
     itembtn00 = types.KeyboardButton('0:0')
     itembtn10 = types.KeyboardButton('1:0')
@@ -307,7 +322,10 @@ def show_bets(message):
     markup.row(itembtn01, itembtn11, itembtn21, itembtn31)
     markup.row(itembtn02, itembtn12, itembtn22, itembtn32)
     markup.row(itembtn03, itembtn13, itembtn23, itembtn33)
-    bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید:", reply_markup=markup)
+    if userObj['lang'] == "fa":
+        bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید:", reply_markup=markup)
+    else:
+        bot.send_message(chat_id=message.chat.id, text="Please predict the score:", reply_markup=markup)
     # bet = bot.get_updates()
     # print("bet is" + bet)
 
