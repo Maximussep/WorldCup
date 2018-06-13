@@ -179,6 +179,27 @@ def group_message(message):
     userObj = db.getUser(message.chat.id, message.from_user.id)
 
 
+@bot.message_handler(func=lambda message: message.chat.type == 'supergroup')
+def group_message(message):
+    chatObj = db.getChat(message.chat.id)
+    usersThisChat = chatObj['users']
+    if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
+        usersThisChat.append(message.from_user.id)
+        updateObj = {
+            '$set': {'users': usersThisChat}
+        }
+        db.setChatField(message.chat.id, updateObj)
+        chatObj = db.getChat(message.chat.id)
+        bot.send_message(chat_id=message.chat.id, text="""\
+            Now it is time to bet!
+            \
+            """)
+    elif 'WorldCup1818bot' in message.text:
+        bot.reply_to(message, 'Let\'s continue in private @WorldCup1818bot!')
+    userObj = db.getUser(message.chat.id, message.from_user.id)
+
+
+
 @bot.message_handler(commands=['table'])
 def make_table(message):
     if message.chat.type == 'group':
