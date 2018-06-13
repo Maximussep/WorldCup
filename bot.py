@@ -17,9 +17,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -57,6 +57,16 @@ You can change the language to English by pressing /english!
 \
 """)
     userObj = db.getUser(message.chat.id, message.from_user.id)
+    if userObj['first'] == []:
+        updateObj = {
+            '$set': {'first': message.from_user.first_name}
+        }
+        db.setUserFields(message.chat.id, message.from_user.id, updateObj)
+    if userObj['last'] == []:
+        updateObj = {
+            '$set': {'last': message.from_user.last_name}
+        }
+        db.setUserFields(message.chat.id, message.from_user.id, updateObj)
     print(userObj)
 
 
@@ -229,7 +239,18 @@ def bet_time(message):
     userObj = db.getUser(message.chat.id, message.from_user.id)
     thisUserId = message.from_user.id
     thisChatId = message.chat.id
-    lang = db.getLang(message.chat.id, message.from_user.id)
+    if userObj['first'] == []:
+        updateObj = {
+            '$set': {'first': message.from_user.first_name}
+        }
+        db.setUserFields(thisChatId, thisUserId, updateObj)
+
+    if userObj['last'] == []:
+        updateObj = {
+            '$set': {'last': message.from_user.last_name}
+        }
+        db.setUserFields(thisChatId, thisUserId, updateObj)
+    # lang = db.getLang(message.chat.id, message.from_user.id)
     if 'updategame' not in message.text:
         if '-' in message.text:
             matches = db.loadOpenMatches()
