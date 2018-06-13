@@ -17,9 +17,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -45,21 +45,6 @@ bet_game = 0
 admin_mode = 0
 
 
-
-class Player:
-    def __init__(self, chat_id, first, last, groups, games, bets, total):
-        self.chat_id = chat_id
-        self.first = first
-        self.last = last
-        self.groups = []
-        self.games = [1, 2]
-        self.bets = []
-        self.total = total
-
-
-players = [Player(0, 0, 0, 0, 0, [1, 2], 0)]
-
-
 # Handle '/start' and '/help'
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -73,21 +58,23 @@ You can change the language to English by pressing /english!
 """)
     userObj = db.getUser(message.chat.id, message.from_user.id)
     print(userObj)
-    if message.from_user.id not in user_id:
-        user_id.append(message.from_user.id)
-        w_sheet.write(len(user_id), 0, message.from_user.id)
-        bets.append([0 for x in range(N)])
-        games_to_bet.append([0 for x in range(N)])
-        points.append([0 for x in range(N)])
-        print(user_id)
-        wb.save('WorldCupExcel.xls')
+    # if message.from_user.id not in user_id:
+    #     user_id.append(message.from_user.id)
+    #     w_sheet.write(len(user_id), 0, message.from_user.id)
+    #     bets.append([0 for x in range(N)])
+    #     games_to_bet.append([0 for x in range(N)])
+    #     points.append([0 for x in range(N)])
+    #     print(user_id)
+    #     wb.save('WorldCupExcel.xls')
 
 
 @bot.message_handler(commands=['help'])
 def instructions(message):
-    ind = user_id.index(message.from_user.id)
-    if language[ind] == 1:
+    userObj = db.getUser(message.chat.id, message.from_user.id)
+    if userObj['lang'] == "fa":
         bot.reply_to(message, """\
+        بات /WorldCup1818bot جهت برگزاری مسابقات پیش‌بینی در گروه‌های تلگرام طراحی شده است. این بات را به گروه‌های خود اضافه کنید و در مسابقه‌ی پیش‌بینی جام‌جهانی شرکت کنید.
+        
         شما با انتخاب /openbets می‌توانید پیش‌بینی بازی‌هایی که هنوز پیش‌بینی نکرده‌اید را انجام دهید.
         
 اگر نتیجه‌ی موردنظرتان در گزینه‌ها نبود، باید نتیجه را به صورت دستی با همان فرمت سایر نتایج وارد کنید. (اعداد به انگلیسی و جدا کردن به وسیله‌ی دونقطه)
@@ -103,17 +90,11 @@ def instructions(message):
         """)
     else:
         bot.reply_to(message, """\
-
+        Add /WorldCup1818bot to your groups and compete with your family and friends.
+        You can start betting by pressing /openbets.
+        For group stage, you will earn 10 points if you get the exact right score, 7 points for guessing the difference right and 5 points if you only get the winner right.
         \
         """)
-
-
-
-@bot.message_handler(commands=['bet'])
-def revise_bet(message):
-    ind = user_id.index(message.from_user.id)
-    games_to_bet[ind] = [1 for x in range(N)]
-    show_games(message)
 
 
 @bot.message_handler(commands=['openbets', 'changebet'])
@@ -150,9 +131,8 @@ def show_games(message):
 
 @bot.message_handler(commands=['ImIn@WorldCup1818bot'])
 def ImIn(message):
-    ind = group_id.index(message.chat.id)
-    if message.from_user.id not in group_user[ind]:
-        group_user[ind].append(message.from_user.id)
+    chatObj = db.getChat(message.chat.id)
+    chatObj.append(message.from_user.id)
 
 
 @bot.message_handler(commands=['language'])
@@ -167,49 +147,36 @@ def choose_language(message):
 @bot.message_handler(commands=['english'])
 def set_language(message):
     db.setLang(message.from_user.id, message.from_user.id, "en")
-    if message.chat.type == 'private':
-        ind = user_id.index(message.from_user.id)
-        language[ind] = "en"
-        markup = types.ReplyKeyboardRemove(selective=False)
-        bot.send_message(message.from_user.id, "You chose English!", reply_markup=markup)
-        send_welcome_english(message.from_user.id)
+    markup = types.ReplyKeyboardRemove(selective=False)
+    bot.send_message(message.from_user.id, "You chose English!", reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: message.text == 'فارسی')
 def set_language(message):
     db.setLang(message.from_user.id, message.from_user.id, "fa")
-    if message.chat.type == 'private':
-        ind = user_id.index(message.from_user.id)
-        language[ind] = "fa"
-        markup = types.ReplyKeyboardRemove(selective=False)
-        bot.send_message(message.from_user.id, "زبان فارسی انتخاب شد!", reply_markup=markup)
+    markup = types.ReplyKeyboardRemove(selective=False)
+    bot.send_message(message.from_user.id, "زبان فارسی انتخاب شد!", reply_markup=markup)
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
 @bot.message_handler(func=lambda message: message.chat.type == 'group')
 def group_message(message):
-    #print(message.text)
-    if message.chat.id not in group_id:
-        group_id.append(message.chat.id)
-        group_user.append([0])
+    chatObj = db.getChat(message.chat.id)
+    usersThisChat = chatObj['users']
+    if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
+        usersThisChat.append(message.from_user.id)
+        updateObj = {
+            '$set': {'users': usersThisChat}
+        }
+        db.setChatField(message.chat.id, updateObj)
+        chatObj = db.getChat(message.chat.id)
         bot.send_message(chat_id=message.chat.id, text="""\
-                        To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
-                        \
-                        """)
-        print(group_id)
-    if message.text == '/ImIn@WorldCup1818bot':
-        ind = group_id.index(message.chat.id)
-        if group_user[ind][0] == 0:
-            group_user[ind][0] = message.from_user.id
-        fir = message.from_user.first_name
-        if message.from_user.id not in group_user[ind]:
-            group_user[ind].append(message.from_user.id)
-            if message.from_user.id not in user_id:
-                msg_txt = "Dear " + fir + "! Please Join @WorldCup1818bot and Press Start."
-        else:
-            msg_txt = 'Dear ' + fir + '! You Are Registered Already, Please Remember to Bet.'
-        bot.send_message(chat_id=message.chat.id, text=msg_txt)
-        print(group_user)
+            Now it is time to bet!
+            \
+            """)
+    elif 'WorldCup1818bot' in message.text:
+        bot.reply_to(message, 'Let\'s continue in private @WorldCup1818bot!')
+    userObj = db.getUser(message.chat.id, message.from_user.id)
 
 
 @bot.message_handler(commands=['table'])
@@ -223,15 +190,9 @@ def make_table(message):
 @bot.message_handler(func=lambda message: True)
 def bet_time(message):
     userObj = db.getUser(message.chat.id, message.from_user.id)
-    print(userObj)
     thisUserId = message.from_user.id
     thisChatId = message.chat.id
-
-    print('here1')
     lang = db.getLang(message.chat.id, message.from_user.id)
-    print('here')
-    print(lang)
-
     if 'updategame' not in message.text:
         if '-' in message.text:
             matches = db.loadOpenMatches()
@@ -288,7 +249,6 @@ def bet_time(message):
     elif 'farbod' not in message.text: #For Final Score only 'updategame' in text
 
         commandParts = message.text.split(' ')
-        print(commandParts)
         matchId = commandParts[1]
         matchObj = {
             'matchId': matchId,
@@ -297,45 +257,6 @@ def bet_time(message):
         }
         db.updateMatch(matchId, matchObj)
         db.updateUserScores()
-        # game_score = int(message.text[0:2])
-        # print(game_score)
-        # # final_scores[game_score]="message.text[2]:message.text[3]"
-        # final_home = int(message.text[2])
-        # print("final_home " + str(final_home))
-        # final_away = int(message.text[3])
-        # print("final_away " + str(final_away))
-        # print(len(user_id))
-        # for i in range(len(user_id)):
-        #     bet_temp = bets[i][game_score]
-        #     home = int(bet_temp[0])
-        #     print("home " + str(home))
-        #     away = int(bet_temp[2])
-        #     print("away " + str(away))
-        #     if home == final_home & away == final_away:
-        #         total_score[i] = total_score[i] + 10
-        #     elif home-away == final_home - final_away:
-        #         total_score[i] = total_score[i] + 7
-        #     elif (home-away)*(final_home-final_away) > 0:
-        #         total_score[i] = total_score[i] + 5
-        # print(total_score)
-        admin_mode = 0
-    else:
-        game_close = int(message.text[0:2])
-        print("Here are the bets for" + games[game_close] + "\n")
-        print(group_id)
-        for i in range(len(group_id)):
-            print(group_id[i])
-            for j in range(len(group_user[i])):
-                chat_obj = bot.get_chat(group_user[i][j])
-                print(chat_obj)
-                fir = chat_obj.first_name
-                if chat_obj.last_name != '':
-                    las = chat_obj.last_name
-                else:
-                    las = ''
-                print(fir + las)
-
-
 
 
 def show_bets(message):

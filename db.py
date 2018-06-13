@@ -9,8 +9,8 @@ from pymongo import MongoClient
 
 client = MongoClient()
 
-MongoDB_URI = os.environ['MONGODB_URI']
-# MongoDB_URI = 'mongodb://localhost:27017/testdb'
+# MongoDB_URI = os.environ['MONGODB_URI']
+MongoDB_URI = 'mongodb://localhost:27017/testdb'
 DB_NAME = MongoDB_URI.split('/')[-1]
 
 client = MongoClient(MongoDB_URI)
@@ -55,7 +55,7 @@ def getUser(chatId, userId):
     userObj = userCollection.find_one(filterObj)
     if userObj == None:
         updateObj = {
-            '$set': {'userId': userId, 'bets': [], 'score': 0, 'toBetMatchId': ''}
+            '$set': {'userId': userId, 'bets': [], 'score': 0, 'toBetMatchId': '', 'lang': "fa"}
         }
         setUserFields(chatId, userId, updateObj)  # set the default values for the user
         userObj = userCollection.find_one(filterObj)
@@ -77,8 +77,37 @@ def getUser(chatId, userId):
         }
         setUserFields(chatId, userId, updateObj)  # set the default values for the user
         userObj = userCollection.find_one(filterObj)
+    if 'lang' not in userObj.keys():
+        updateObj = {
+            '$set': {'lang': 'fa'}
+        }
+        setUserFields(chatId, userId, updateObj)  # set the default values for the user
+        userObj = userCollection.find_one(filterObj)
 
     return userObj
+
+
+def getChat(chatId):
+    filterObj = {
+        # "userId": userId,
+        "chatId": chatId
+    }
+    chatObj = chatCollection.find_one(filterObj)
+    if chatObj == None:
+        updateObj = {
+            '$set': {'chatId': chatId, 'users': []}
+        }
+        setChatField(chatId, updateObj)  # set the default values for the chat
+        chatObj = chatCollection.find_one(filterObj)
+    if 'users' not in chatObj.keys():
+        updateObj = {
+            '$set': {'users': []}
+        }
+        setChatField(chatId, updateObj)  # set the default values for the user
+        chatObj = chatCollection.find_one(filterObj)
+
+    return chatObj
+
 
 def setUserFields(chatId, userId, updateObj):
     filterObj = {
@@ -91,6 +120,20 @@ def setUserFields(chatId, userId, updateObj):
     result = userCollection.update_one(filterObj, updateObj, upsert=True)
     if result.matched_count:
         logger.info("Updated the field values for user with id {}".format(userId))
+    return result
+
+
+def setChatField(chatId, updateObj):
+    filterObj = {
+        # "userId": userId,
+        "chatId": chatId
+    }
+    # updateObj = {
+    #     '$set': {'lang': lang}
+    # }
+    result = chatCollection.update_one(filterObj, updateObj, upsert=True)
+    if result.matched_count:
+        logger.info("Updated the field values for chat with id {}".format(chatId))
     return result
 
 
