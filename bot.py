@@ -76,8 +76,8 @@ def instructions(message):
     if userObj['lang'] == "fa":
         bot.reply_to(message, """\
         بات /WorldCup1818bot جهت برگزاری مسابقات پیش‌بینی در گروه‌های تلگرام طراحی شده است. این بات را به گروه‌های خود اضافه کنید و در مسابقه‌ی پیش‌بینی جام‌جهانی شرکت کنید.
-        
-        شما با انتخاب /openbets می‌توانید پیش‌بینی بازی‌هایی که هنوز پیش‌بینی نکرده‌اید را انجام دهید.
+
+شما با انتخاب /openbets می‌توانید پیش‌بینی بازی‌هایی که هنوز پیش‌بینی نکرده‌اید را انجام دهید.
         
 اگر نتیجه‌ی موردنظرتان در گزینه‌ها نبود، باید نتیجه را به صورت دستی با همان فرمت سایر نتایج وارد کنید. (اعداد به انگلیسی و جدا کردن به وسیله‌ی دونقطه)
         
@@ -123,14 +123,24 @@ def show_games(message):
         if (alreadyBet and wantToChangeBet) or (not alreadyBet and wantToHaveNewBet):
             openBets.append(match)
 
-    for Obet in openBets:
-        itembtn1 = Obet['flags']
-        markup.row(itembtn1)
-    bot.send_message(chat_id=message.from_user.id, text= """\
-    لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:
-    Please choose the game you want to bet on:
-    \
-    """, reply_markup=markup)
+    if  openBets != []:
+        for Obet in openBets:
+            itembtn1 = Obet['flags']
+            markup.row(itembtn1)
+        bot.send_message(chat_id=message.from_user.id, text= """\
+            لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:
+
+Please choose the game you want to bet on:
+            \
+            """, reply_markup=markup)
+    else:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        bot.send_message(chat_id=message.from_user.id, text="""\
+        همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
+
+You have no open bets. Press /changebet to change your bets.
+                   \
+                   """, reply_markup=markup)
 
 
 @bot.message_handler(commands=['ImIn@WorldCup1818bot'])
@@ -175,24 +185,26 @@ def set_language(message):
 def group_message(message):
     chatObj = db.getChat(message.chat.id)
     usersThisChat = chatObj['users']
-    if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
+    if "/ImIn" in message.text and message.from_user.id not in usersThisChat:
         usersThisChat.append(message.from_user.id)
         updateObj = {
             '$set': {'users': usersThisChat}
         }
         db.setChatField(message.chat.id, updateObj)
         chatObj = db.getChat(message.chat.id)
-        bot.send_message(chat_id=message.chat.id, text="""\
-            Now it is time to bet!
-            \
-            """)
+        bot.reply_to(message, """\
+                    حالا به @WorlCup1818bot برو و /openbets را وارد کن.
+
+Now let's go to @WorldCup1818bot and enter /openbets.
+                    \
+                    """)
     elif 'WorldCup1818bot' in message.text:
         bot.reply_to(message, 'Let\'s continue in private @WorldCup1818bot!')
     if usersThisChat == []:
         bot.send_message(message.chat.id,"""\
         برای پیش‌بینی نتایج بازی‌های جام‌جهانی به @WorldCup1818bot رفته و برای رقابت با دیگر اعضای گروه /ImIn را فشار دهید.
-         
-        To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
+
+To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
         \
         """)
     userObj = db.getUser(message.chat.id, message.from_user.id)
@@ -205,19 +217,21 @@ def group_message(message):
     if usersThisChat == []:
         bot.send_message(message.chat.id,"""\
         برای پیش‌بینی نتایج بازی‌های جام‌جهانی به @WorldCup1818bot رفته و برای رقابت با دیگر اعضای گروه /ImIn را فشار دهید.
-         
-        To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
+
+To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
         \
         """)
-    if message.text == "/ImIn@WorldCup1818bot" and message.from_user.id not in usersThisChat:
+    if '/ImIn' in message.text and message.from_user.id not in usersThisChat:
         usersThisChat.append(message.from_user.id)
         updateObj = {
             '$set': {'users': usersThisChat}
         }
         db.setChatField(message.chat.id, updateObj)
         chatObj = db.getChat(message.chat.id)
-        bot.send_message(chat_id=message.chat.id, text="""\
-            Now it is time to bet!
+        bot.reply_to(message, """\
+            حالا به @WorlCup1818bot برو و /openbets را وارد کن.
+            
+Now let's go to @WorldCup1818bot and enter /openbets.
             \
             """)
     elif 'WorldCup1818bot' in message.text:
@@ -344,15 +358,6 @@ def show_bets(message):
         bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید:", reply_markup=markup)
     else:
         bot.send_message(chat_id=message.chat.id, text="Please predict the score:", reply_markup=markup)
-    # bet = bot.get_updates()
-    # print("bet is" + bet)
 
-
-def send_welcome_english(userid):
-    bot.send_message(userid, """\
-    Hey, let see how well you can predict World Cup games!
-    You can take a look at rules by pressing /help or start betting by pressing /openbets!
-    \
-    """)
 
 bot.polling()
