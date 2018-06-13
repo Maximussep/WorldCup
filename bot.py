@@ -179,8 +179,11 @@ def group_message(message):
     elif 'WorldCup1818bot' in message.text:
         bot.reply_to(message, 'Let\'s continue in private @WorldCup1818bot!')
     if usersThisChat == []:
-        bot.send_message(message.chat.id,
-                         "To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.")
+        bot.send_message(message.chat.id,""""/
+        برای پیش‌بینی نتایج بازی‌های جام‌جهانی به @WorldCup1818bot رفته و برای رقابت با دیگر اعضای گروه /ImIn را فشار دهید.
+         
+        To Participate in WorldCup2018 Prediction Contest, Join @WorldCup1818bot and Press /ImIn here.
+        /""")
     userObj = db.getUser(message.chat.id, message.from_user.id)
 
 
