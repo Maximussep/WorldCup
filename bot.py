@@ -323,6 +323,25 @@ def bet_time(message):
 
         commandParts = message.text.split(' ')
         matchId = commandParts[1]
+        if commandParts[2] == 'C':
+            allChats = db.loadAllChats()
+            for chat in allChats:
+                msg_text = 'پیش‌بینی‌ها برای بازی: \nHere are the bets for the game:'
+                msg_text += '\n\n' + commandParts[3] + '\n\n'
+                for userId in chat['users']:
+                    userObj = db.getUser(userId, userId)
+                    for bets in userObj['bets']:
+                        if bets['matchId'] == matchId:
+                            thisUser = bot.get_chat(userId)
+                            msg_text += thisUser.first_name
+                            if thisUser.last_name is not None:
+                                msg_text += ' ' + thisUser.last_name
+                            msg_text += ' ' + bets['value'] + "\n"
+                markup = types.ReplyKeyboardRemove(selective=False)
+                try:
+                    bot.send_message(chat_id=chat['chatId'], text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.', reply_markup=markup)
+                except:
+                    pass
         matchObj = {
             'matchId': matchId,
             'result': commandParts[2],
