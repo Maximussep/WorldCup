@@ -24,6 +24,20 @@ matchCollection = db['match']
 logger.info("DB ready!")
 
 
+def loadAllChats():
+    cursor = chatCollection.find()
+    chats = []
+    for m in cursor:
+        chats.append(m)
+    return chats
+
+def loadAllUsers():
+    cursor = userCollection.find()
+    users = []
+    for m in cursor:
+        users.append(m)
+    return users
+
 def loadOpenMatches():
     filterObj = {
         'result': 'O'
@@ -33,6 +47,7 @@ def loadOpenMatches():
     for m in cursor:
         matches.append(m)
     return matches
+
 
 def updateMatch(matchId, matchObj):
     filterObj = {

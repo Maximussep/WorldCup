@@ -264,8 +264,9 @@ def bet_time(message):
             '$set': {'last': message.from_user.last_name}
         }
         db.setUserFields(thisChatId, thisUserId, updateObj)
+
     # lang = db.getLang(message.chat.id, message.from_user.id)
-    if 'updategame' not in message.text:
+    if 'updategame' not in message.text and 'sendreminder' not in message.text:
         if '-' in message.text:
             matches = db.loadOpenMatches()
             for m in matches:
@@ -318,7 +319,7 @@ def bet_time(message):
                 همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
                 \
                 """, reply_markup=markup)
-    elif 'farbod' not in message.text: #For Final Score only 'updategame' in text
+    elif 'updategame' in message.text: #For Final Score only 'updategame' in text
 
         commandParts = message.text.split(' ')
         matchId = commandParts[1]
@@ -329,6 +330,35 @@ def bet_time(message):
         }
         db.updateMatch(matchId, matchObj)
         db.updateUserScores()
+
+    elif 'sendreminder' in message.text:
+
+        openMatches = db.loadOpenMatches()
+        commandParts = message.text.split(' ')
+        msg_text = '\n پیش‌بینی بازی‌های زیر را فراموش نکنید: \n Remember to bet on the following games:\n \n'
+        for match in openMatches:
+            if match['matchId'] in commandParts:
+                msg_text += match['flags']
+                msg_text += '\n'
+        msg_text +='\n پیش‌بینی با شروع بازی بسته خواهد شد. \n Bet will be closed as the game starts.'
+        # bot.reply_to(message, msg_text)
+        if commandParts[1] == 'a' or commandParts[1] == 'g':
+            allChats = db.loadAllChats()
+            for chat in allChats:
+                markup = types.ReplyKeyboardRemove(selective=False)
+                try:
+                    bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
+                except:
+                    pass
+        if commandParts[1] == 'a' or commandParts[1] == 'p':
+            allUsers = db.loadAllUsers()
+            for user in allUsers:
+                markup = types.ReplyKeyboardRemove(selective=False)
+                try:
+                    bot.send_message(chat_id=user['userId'], text=msg_text + ' /openbets', reply_markup=markup)
+                except:
+                    pass
+
 
 
 def show_bets(message):
