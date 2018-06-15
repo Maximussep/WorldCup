@@ -73,8 +73,14 @@ def instructions(message):
         Add /WorldCup1818bot to your groups and compete with your family and friends.
         
 You can start betting by pressing /openbets.
-        
-For group stage, you will earn 10 points if you get the exact right score, 7 points for guessing the difference right and 5 points if you only get the winner right.
+
+Scoring:
+Exact Score = 25 pts
+Winning Team Goals = 18 pts
+Goal Difference = 15 pts
+Losing Team Goals = 12 pts
+Match Winner = 10 pts
+Bet on Tie = 4 pts
         \
         """)
 
@@ -174,13 +180,13 @@ def make_table(message):
         line_text = ''
         length = 0
         line_text += str(row) + '. '
-        if isinstance(thisUser['first'], str):
-            line_text += thisUser['first']
+        if isinstance(thisUser.first_name, str):
+            line_text += thisUser.first_name
             line_text +=  ' '
-            length += len(thisUser['first'])
-        if isinstance(thisUser['last'], str):
-            line_text += thisUser['last']
-            length += len(thisUser['last'])
+            length += len(thisUser.first_name)
+        if isinstance(thisUser.last_name, str):
+            line_text += thisUser.last_name
+            length += len(thisUser.last_name)
         if length < 30:
             for i in range(int(np.ceil(5/3*length)),30):
                 line_text += ' '
@@ -191,8 +197,8 @@ def make_table(message):
         line_text += str(user['score'])
         row += 1
         msg_text += line_text + '\n'
-        msg_text += '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.'
-        msg_text += '\nبرای مشاهده‌ی نحوه‌ی امتیازدهی به /help مراجعه کنید.'
+    msg_text += '\nاگر نام شما در لیست نیست /ImIn را انتخاب کنید.'
+    msg_text += '\nبرای مشاهده‌ی نحوه‌ی امتیازدهی به /help مراجعه کنید.'
     bot.send_message(message.chat.id, msg_text)
 
 
