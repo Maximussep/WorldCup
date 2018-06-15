@@ -49,6 +49,14 @@ def loadOpenMatches():
     return matches
 
 
+def loadAllMatches():
+    cursor = matchCollection.find()
+    matches = []
+    for m in cursor:
+        matches.append(m)
+    return matches
+
+
 def updateMatch(matchId, matchObj):
     filterObj = {
         "matchId": matchId,

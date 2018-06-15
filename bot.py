@@ -127,12 +127,7 @@ def show_games(message):
         for Obet in openBets:
             itembtn1 = Obet['flags']
             markup.row(itembtn1)
-        bot.send_message(chat_id=message.from_user.id, text= """\
-            لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:
-
-Please choose the game you want to bet on:
-            \
-            """, reply_markup=markup)
+        bot.send_message(chat_id=message.from_user.id, text= "لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:\n\nPlease choose the game you want to bet on:", reply_markup=markup)
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(chat_id=message.from_user.id, text="""\
@@ -319,29 +314,14 @@ def bet_time(message):
                 همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
                 \
                 """, reply_markup=markup)
+
+
+
+
     elif 'updategame' in message.text: #For Final Score only 'updategame' in text
 
         commandParts = message.text.split(' ')
         matchId = commandParts[1]
-        if commandParts[2] == 'C':
-            allChats = db.loadAllChats()
-            for chat in allChats:
-                msg_text = 'پیش‌بینی‌ها برای بازی: \nHere are the bets for the game:'
-                msg_text += '\n\n' + commandParts[3] + '\n\n'
-                for userId in chat['users']:
-                    userObj = db.getUser(userId, userId)
-                    for bets in userObj['bets']:
-                        if bets['matchId'] == matchId:
-                            thisUser = bot.get_chat(userId)
-                            msg_text += thisUser.first_name
-                            if thisUser.last_name is not None:
-                                msg_text += ' ' + thisUser.last_name
-                            msg_text += ' ' + bets['value'] + "\n"
-                markup = types.ReplyKeyboardRemove(selective=False)
-                try:
-                    bot.send_message(chat_id=chat['chatId'], text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.', reply_markup=markup)
-                except:
-                    pass
         matchObj = {
             'matchId': matchId,
             'result': commandParts[2],
@@ -349,6 +329,14 @@ def bet_time(message):
         }
         db.updateMatch(matchId, matchObj)
         db.updateUserScores()
+        print(commandParts)
+        if commandParts[2] == 'C':
+            group_bets(matchId, commandParts[3])
+        elif commandParts[2] != 'O':
+            update_tot_scores()
+
+
+
 
     elif 'sendreminder' in message.text:
 
@@ -407,6 +395,82 @@ def show_bets(message):
         bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید:", reply_markup=markup)
     else:
         bot.send_message(chat_id=message.chat.id, text="Please predict the score:", reply_markup=markup)
+
+
+def group_bets(matchId, flags):
+    allChats = db.loadAllChats()
+    for chat in allChats:
+        msg_text = 'ییش‌بینی‌ها برای بازی:'
+        msg_text += '\nHere are the bets for the game:'
+        msg_text += '\n\n' + flags + '\n\n'
+        for userId in chat['users']:
+            userObj = db.getUser(userId, userId)
+            for bets in userObj['bets']:
+                if bets['matchId'] == matchId:
+                    thisUser = bot.get_chat(userId)
+                    msg_text += thisUser.first_name
+                    if thisUser.last_name is not None:
+                        msg_text += ' ' + thisUser.last_name
+                    msg_text += ' ' + bets['value'] + "\n"
+        markup = types.ReplyKeyboardRemove(selective=False)
+        try:
+            bot.send_message(chat_id=chat['chatId'],
+                             text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.', reply_markup=markup)
+        except:
+            pass
+
+
+def update_tot_scores():
+    allMatches = db.loadAllMatches()
+    allUsers = db.loadAllUsers()
+    for user in allUsers:
+        thisUserBets = user['bets']
+        score = 0
+        for bet in thisUserBets:
+            for match in allMatches:
+                if match['result'] == 'O':
+                    break
+                if bet['matchId'] == match['matchId']:
+                    final = match['result'].split(':')
+                    drawFinal = 0
+                    if int(final[0]) == int(final[1]):
+                        drawFinal = 1
+                        winnerFinal = int(final[0])
+                        loserFinal = int(final[0])
+                    elif int(final[0]) > int(final[1]):
+                        winnerFinal = int(final[0])
+                        loserFinal = int(final[1])
+                    else:
+                        winnerFinal = int(final[1])
+                        loserFinal = int(final[0])
+                    userBet = bet['value'].split(':')
+                    drawUser = 0
+                    if int(userBet[0]) == int(userBet[1]):
+                        drawUser = 1
+                        winnerUser = int(userBet[0])
+                        loserUser = int(userBet[0])
+                    elif int(userBet[0]) > int(userBet[1]):
+                        winnerUser = int(userBet[0])
+                        loserUser = int(userBet[1])
+                    else:
+                        winnerUser = int(userBet[1])
+                        loserUser = int(userBet[0])
+                    if winnerUser == winnerFinal and loserUser==loserFinal:
+                        score += 25
+                    elif winnerUser == winnerFinal and loserUser!=loserFinal and drawUser-drawFinal==0:
+                        score += 18
+                    elif winnerUser-loserUser == winnerFinal-loserFinal:
+                        score += 15
+                    elif loserUser == loserFinal and winnerUser!=winnerFinal and drawUser-drawFinal==0:
+                        score += 12
+                    elif (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
+                        score += 10
+                    elif winnerUser == loserUser:
+                        score += 4
+        updateObj = {
+            '$set': {'score': score}
+        }
+        db.setUserFields(user['userId'], user['userId'], updateObj)
 
 
 bot.polling()
