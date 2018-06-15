@@ -173,11 +173,14 @@ def make_table(message):
         line_text = ''
         length = 0
         line_text += str(row) + '. '
-        if user['first'] is str:
+        print(user['first'])
+        print(user['last'])
+        if isinstance(user['first'], str):
+            print('here')
             line_text += user['first']
             line_text +=  ' '
             length += len(user['first'])
-        if user['last'] is str:
+        if isinstance(user['last'], str):
             line_text += user['last']
             length += len(user['last'])
         if length < 30:
