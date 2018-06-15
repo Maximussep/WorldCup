@@ -173,11 +173,11 @@ def make_table(message):
         line_text = ''
         length = 0
         line_text += str(row) + '. '
-        if user['first'] is not None:
+        if user['first'] is not None or user['first'] != []:
             line_text += user['first']
             line_text +=  ' '
             length += len(user['first'])
-        if user['last'] is not None:
+        if user['last'] is not None or user['last'] != []:
             line_text += user['last']
             length += len(user['last'])
         if length < 30:
