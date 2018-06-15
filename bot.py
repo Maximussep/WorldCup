@@ -44,6 +44,7 @@ You can change the language to English by pressing /english!
             '$set': {'last': message.from_user.last_name}
         }
         db.setUserFields(message.chat.id, message.from_user.id, updateObj)
+    userObj = db.getUser(message.chat.id, message.from_user.id)
     print(userObj)
 
 
