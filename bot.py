@@ -5,13 +5,10 @@
 import telebot
 import numpy as np
 from telebot import types
-import xlwt
-import xlrd
 import pymongo
-from xlutils.copy import copy
 import db
 import os
-
+from operator import itemgetter, attrgetter, methodcaller
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,26 +21,6 @@ API_TOKEN = os.environ['TELEGRAM_TOKEN']
 bot = telebot.TeleBot(API_TOKEN)
 
 logger.info("TG bot ready (API key: {})!".format(API_TOKEN))
-
-rb = xlrd.open_workbook('WorldCupExcel.xls')
-wb = copy(rb)
-w_sheet = wb.get_sheet(0)
-
-cnt = 0
-user_id = []
-group_id = []
-group_user = [[0]]
-language = ["fa"]
-N = 4 #Number of Games
-bets = [[0 for x in range(N)]]
-games_to_bet = [[1 for x in range(N)]]
-points = [[0 for x in range(N)]]
-games = ['🇷🇺 - 🇸🇦', '🇪🇬 - 🇺🇾', '🇮🇷 - 🇲🇦', '🇪🇸 - 🇵🇹']
-final_scores = [-1]
-total_score = [0]
-bet_game = 0
-admin_mode = 0
-
 
 # Handle '/start' and '/help'
 @bot.message_handler(commands=['start'])
@@ -124,11 +101,15 @@ def show_games(message):
         if (alreadyBet and wantToChangeBet) or (not alreadyBet and wantToHaveNewBet):
             openBets.append(match)
 
+    open_text = "لطفاً بازی‌ موردنظر را انتخاب کنید یا برای تغییر نتیجه "
+    open_text += "/changebet"
+    open_text += " را فشار دهید:"
+    open_text += '\nPlease choose the game you want to bet on or choose /changebet:'
     if  openBets != []:
         for Obet in openBets:
             itembtn1 = Obet['flags']
             markup.row(itembtn1)
-        bot.send_message(chat_id=message.from_user.id, text= "لطفاً بازی‌ موردنظر برای پیش‌بینی را انتخاب کنید:\n\nPlease choose the game you want to bet on:", reply_markup=markup)
+        bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(chat_id=message.from_user.id, text="""\
@@ -174,6 +155,43 @@ def set_language(message):
     db.setUserFields(message.chat.id, message.from_user.id, updateObj)
     markup = types.ReplyKeyboardRemove(selective=False)
     bot.send_message(message.chat.id, "زبان بات فارسی انتخاب شد!", reply_markup=markup)
+
+
+@bot.message_handler(commands=['table'])
+def make_table(message):
+    chat = db.getChat(message.chat.id)
+    userIds = chat['users']
+    usersThisChat = []
+    for userId in userIds:
+        usersThisChat.append(db.getUser(userId, userId))
+    sortedUsers = sorted(usersThisChat, key=itemgetter('score'), reverse=True)
+    row = 1
+    msg_text = 'R  '+'Name'
+    msg_text += '                 ' + 'Points\n' #24 spaces
+    msg_text += '________________________\n'
+    for user in sortedUsers:
+        line_text = ''
+        length = 0
+        line_text += str(row) + '. '
+        line_text += user['first'] + ' '
+        length += len(user['first'])
+        if user['last'] is not None:
+            line_text += user['last']
+            length += len(user['last'])
+        if length < 30:
+            for i in range(int(np.ceil(5/3*length)),30):
+                line_text += ' '
+        else:
+            line_text += '\n'
+            for i in range(30):
+                line_text += ' '
+        line_text += str(user['score'])
+        row += 1
+        msg_text += line_text + '\n'
+    bot.send_message(message.chat.id, msg_text)
+
+
+
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
@@ -235,13 +253,14 @@ Now let's go to @WorldCup1818bot and enter /openbets.
     userObj = db.getUser(message.chat.id, message.from_user.id)
 
 
-
-@bot.message_handler(commands=['table'])
-def make_table(message):
-    if message.chat.type == 'group':
-        group_id = message.chat.id
-
-
+@bot.message_handler(commands=['mypoints'])
+def my_points(message):
+    userId = message.from_user.id
+    user = db.getUser(userId, userId)
+    msg_text = 'شما تا اینجا '
+    msg_text += str(user['score'])
+    msg_text += ' امتیاز کسب کرده‌اید.'
+    bot.reply_to(message,msg_text)
 
 
 @bot.message_handler(func=lambda message: True)
@@ -348,22 +367,27 @@ def bet_time(message):
             if match['matchId'] in commandParts:
                 msg_text += match['flags']
                 msg_text += '\n'
-        msg_text +='\n پیش‌بینی با شروع بازی بسته خواهد شد. \n Bet will be closed as the game starts.'
-        # bot.reply_to(message, msg_text)
-        if commandParts[1] == 'a' or commandParts[1] == 'g':
-            allChats = db.loadAllChats()
-            for chat in allChats:
-                markup = types.ReplyKeyboardRemove(selective=False)
-                try:
-                    bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
-                except:
-                    pass
+        msg_text +='\n پیش‌بینی با شروع هر بازی بسته خواهد شد. \n Bet will be closed as the game starts.'
         if commandParts[1] == 'a' or commandParts[1] == 'p':
             allUsers = db.loadAllUsers()
             for user in allUsers:
                 markup = types.ReplyKeyboardRemove(selective=False)
                 try:
                     bot.send_message(chat_id=user['userId'], text=msg_text + ' /openbets', reply_markup=markup)
+                except:
+                    pass
+        if commandParts[1] == 'a' or commandParts[1] == 'g':
+            allChats = db.loadAllChats()
+            flag = 1
+            for chat in allChats:
+                if flag == 1:
+                    msg_text += '\n برای مشاهده‌ی جدول گروه دستور '
+                    msg_text += '/table '
+                    msg_text += 'را اجرا کنید.'
+                    flag = 0
+                markup = types.ReplyKeyboardRemove(selective=False)
+                try:
+                    bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
                 except:
                     pass
 
@@ -393,9 +417,9 @@ def show_bets(message):
     markup.row(itembtn02, itembtn12, itembtn22, itembtn32)
     markup.row(itembtn03, itembtn13, itembtn23, itembtn33)
     if userObj['lang'] == "fa":
-        bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید:", reply_markup=markup)
+        bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید. می‌توانید نتیجه‌ی دلخواه را دستی وارد کنید (م. 5:0):", reply_markup=markup)
     else:
-        bot.send_message(chat_id=message.chat.id, text="Please predict the score:", reply_markup=markup)
+        bot.send_message(chat_id=message.chat.id, text="Please predict the score. You can enter your customized score (Eg 5:0):", reply_markup=markup)
 
 
 def group_bets(matchId, flags):
@@ -468,7 +492,6 @@ def update_tot_scores():
                         score += 10
                     elif winnerUser == loserUser:
                         score += 4
-                    print('oumadam' + str(score))
         updateObj = {
             '$set': {'score': score}
         }
