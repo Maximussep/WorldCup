@@ -170,19 +170,17 @@ def make_table(message):
     msg_text += '                 ' + 'Points\n' #24 spaces
     msg_text += '________________________\n'
     for user in sortedUsers:
+        thisUser = bot.get_chat(user['userId'])
         line_text = ''
         length = 0
         line_text += str(row) + '. '
-        print(user['first'])
-        print(user['last'])
-        if isinstance(user['first'], str):
-            print('here')
-            line_text += user['first']
+        if isinstance(thisUser['first'], str):
+            line_text += thisUser['first']
             line_text +=  ' '
-            length += len(user['first'])
-        if isinstance(user['last'], str):
-            line_text += user['last']
-            length += len(user['last'])
+            length += len(thisUser['first'])
+        if isinstance(thisUser['last'], str):
+            line_text += thisUser['last']
+            length += len(thisUser['last'])
         if length < 30:
             for i in range(int(np.ceil(5/3*length)),30):
                 line_text += ' '
@@ -193,6 +191,7 @@ def make_table(message):
         line_text += str(user['score'])
         row += 1
         msg_text += line_text + '\n'
+        msg_text += '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.'
     bot.send_message(message.chat.id, msg_text)
 
 
