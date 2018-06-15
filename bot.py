@@ -467,6 +467,7 @@ def update_tot_scores():
                         score += 10
                     elif winnerUser == loserUser:
                         score += 4
+        print(score)
         updateObj = {
             '$set': {'score': score}
         }
