@@ -491,13 +491,13 @@ def update_tot_scores():
                     else:
                         winnerUser = int(userBet[1])
                         loserUser = int(userBet[0])
-                    if winnerUser == winnerFinal and loserUser==loserFinal:
+                    if winnerUser == winnerFinal and loserUser==loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
                         score += 25
-                    elif winnerUser == winnerFinal and loserUser!=loserFinal and drawUser-drawFinal==0:
+                    elif winnerUser == winnerFinal and loserUser!=loserFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 18
-                    elif winnerUser-loserUser == winnerFinal-loserFinal:
+                    elif winnerUser-loserUser == winnerFinal-loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
                         score += 15
-                    elif loserUser == loserFinal and winnerUser!=winnerFinal and drawUser-drawFinal==0:
+                    elif loserUser == loserFinal and winnerUser!=winnerFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 12
                     elif (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 10
