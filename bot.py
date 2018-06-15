@@ -192,6 +192,7 @@ def make_table(message):
         row += 1
         msg_text += line_text + '\n'
         msg_text += '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.'
+        msg_text += '\nبرای مشاهده‌ی نحوه‌ی امتیازدهی به /help مراجعه کنید.'
     bot.send_message(message.chat.id, msg_text)
 
 
