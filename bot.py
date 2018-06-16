@@ -116,7 +116,10 @@ def show_games(message):
         for Obet in openBets:
             itembtn1 = Obet['flags']
             markup.row(itembtn1)
-        bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
+        try:
+            bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
+        except:
+            pass
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(chat_id=message.from_user.id, text="""\
