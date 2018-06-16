@@ -177,7 +177,11 @@ def make_table(message):
     msg_text += '                 ' + 'Points\n' #24 spaces
     msg_text += '________________________\n'
     for user in sortedUsers:
-        thisUser = bot.get_chat(user['userId'])
+        try:
+            thisUser = bot.get_chat(user['userId'])
+        except:
+            print('This user is causing trouble:')
+            print(user)
         line_text = ''
         length = 0
         line_text += str(row) + '. '
