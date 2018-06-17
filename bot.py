@@ -119,7 +119,8 @@ def show_games(message):
         try:
             bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
         except:
-            pass
+            print('This user is causing trouble in show_games:')
+            print(user)
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(chat_id=message.from_user.id, text="""\
@@ -183,7 +184,7 @@ def make_table(message):
         try:
             thisUser = bot.get_chat(user['userId'])
         except:
-            print('This user is causing trouble:')
+            print('This user is causing trouble in make_table:')
             print(user)
         line_text = ''
         length = 0
@@ -409,7 +410,8 @@ def bet_time(message):
                 try:
                     bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
                 except:
-                    pass
+                    print('This user is causing trouble in bet_time:')
+                    print(user)
 
 
 
