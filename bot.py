@@ -214,11 +214,63 @@ def make_table(message):
         line_text += str(user['score'])
         row += 1
         msg_text += line_text + '\n'
+    msg_text += '\nبرای مشاهده‌ی جدول با رتبه‌های کلی /overall را انتخاب کنید.'
     msg_text += '\nاگر نام شما در لیست نیست /ImIn را انتخاب کنید.'
     msg_text += '\nبرای مشاهده‌ی نحوه‌ی امتیازدهی به /help مراجعه کنید.'
     bot.send_message(message.chat.id, msg_text)
 
 
+
+@bot.message_handler(commands=['overall'])
+def make_table(message):
+    if message.chat.id == message.from_user.id: #It's not a group message!
+        user = db.getUser(message.chat.id, message.chat.id)
+        if user['lang'] == "fa":
+            msg_text = 'برای مشاهده‌ی امتیاز و رتبه‌ی خود /mypoints را انتخاب کنید.'
+        else:
+            msg_text = '\nChoose /mypoints to see your total points and your rank.'
+        bot.send_message(message.chat.id,msg_text)
+        return 0
+    allUsers = db.loadAllUsers()
+    sortedUsers = sorted(allUsers, key=itemgetter('score'), reverse=True)
+    highest_score = sortedUsers[0]['score']
+    chat = db.getChat(message.chat.id)
+    userIds = chat['users']
+    usersThisChat = []
+    for userId in userIds:
+        usersThisChat.append(db.getUser(userId, userId))
+    sortedUsers = sorted(usersThisChat, key=itemgetter('score'), reverse=True)
+    row = 1
+    msg_text = 'R  '+'Name'
+    msg_text += '                 ' + 'Points\n' #24 spaces
+    msg_text += '________________________\n'
+    msg_text += '1. Highest Score         ' + str(highest_score)+'\n'
+    for user in sortedUsers:
+        try:
+            thisUser = bot.get_chat(user['userId'])
+        except:
+            print('This user is causing trouble in make_table:')
+            print(thisUser)
+        line_text = ''
+        length = 0
+        line_text += str(user['rank']) + '. '
+        if isinstance(thisUser.first_name, str):
+            line_text += thisUser.first_name
+            line_text +=  ' '
+            length += len(thisUser.first_name)
+        if isinstance(thisUser.last_name, str):
+            line_text += thisUser.last_name
+            length += len(thisUser.last_name)
+        if length < 30:
+            for i in range(int(np.ceil(5/3*length)),30):
+                line_text += ' '
+        else:
+            line_text += '\n'
+            for i in range(30):
+                line_text += ' '
+        line_text += str(user['score'])
+        msg_text += line_text + '\n'
+    bot.send_message(message.chat.id, msg_text)
 
 
 
@@ -284,11 +336,25 @@ Now let's go to @WorldCup1818bot and enter /openbets.
 
 @bot.message_handler(commands=['mypoints'])
 def my_points(message):
+    allUsers = db.loadAllUsers()
+    sortedUsers = sorted(allUsers, key=itemgetter('score'), reverse=True)
+    highest_score = sortedUsers[0]['score']
     userId = message.from_user.id
     user = db.getUser(userId, userId)
-    msg_text = 'شما تا اینجا '
-    msg_text += str(user['score'])
-    msg_text += ' امتیاز کسب کرده‌اید.'
+    if user['lang'] == "fa":
+        msg_text = 'شما تا اینجا '
+        msg_text += str(user['score'])
+        msg_text += ' امتیاز کسب کرده‌اید و در رتبه‌ی '
+        msg_text += str(user['rank'])
+        msg_text += ' قرار دارید.\nبیشترین امتیاز: '
+        msg_text += str(highest_score)
+    else:
+        msg_text = 'You have earned '
+        msg_text += str(user['score'])
+        msg_text += ' so far. Your overall rank is: '
+        msg_text += str(user['rank'])
+        msg_text += '\nHighest Score: '
+        msg_text += str(highest_score)
     bot.reply_to(message,msg_text)
 
 
@@ -535,7 +601,7 @@ def update_ranks():
     sortedUsers = sorted(allUsers, key=itemgetter('score'), reverse=True)
     user_no = 1
     last_rank = 1
-    last_score = sortedUsers[1]['score']
+    last_score = sortedUsers[0]['score']
     for user in sortedUsers:
         if user['score'] == last_score:
             updateObj = {
