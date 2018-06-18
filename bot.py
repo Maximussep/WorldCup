@@ -194,6 +194,7 @@ def make_table(message):
         except:
             print('This user is causing trouble in make_table:')
             print(user)
+            continue
         line_text = ''
         length = 0
         line_text += str(row) + '. '
@@ -222,7 +223,7 @@ def make_table(message):
 
 
 @bot.message_handler(commands=['overall'])
-def make_table(message):
+def overall_table(message):
     if message.chat.id == message.from_user.id: #It's not a group message!
         user = db.getUser(message.chat.id, message.chat.id)
         if user['lang'] == "fa":
@@ -251,6 +252,7 @@ def make_table(message):
         except:
             print('This user is causing trouble in make_table:')
             print(thisUser)
+            continue
         line_text = ''
         length = 0
         line_text += str(user['rank']) + '. '
