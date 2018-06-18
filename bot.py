@@ -171,7 +171,7 @@ def set_language(message):
 @bot.message_handler(commands=['table'])
 def make_table(message):
     if message.chat.id == message.from_user.id: #It's not a group message!
-        user = db.getUser(message.chat.id)
+        user = db.getUser(message.chat.id, message.chat.id)
         if user['lang'] == "fa":
             msg_text = 'برای مشاهده‌ی امتیاز خود /mypoints را انتخاب کنید.'
         else:
