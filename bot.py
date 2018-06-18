@@ -14,9 +14,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -390,8 +390,30 @@ def bet_time(message):
             matches = db.loadOpenMatches()
             matchId = userObj['toBetMatchId']
             bets = userObj['bets']
-
             betValue = message.text
+
+            for m in matches:
+                if m['matchId'] == matchId:
+                    flag = m['flags']
+            result = betValue.split(':')
+            print(result)
+            print(ord('0'))
+            print(ord('9'))
+            if 47 < ord(result[0])<58 and 47<ord(result[1])<58:
+                if userObj['lang'] =="fa":
+                    accept_text = 'پیش‌بینی شما پذیرفته شد:\n'
+                    accept_text += flag + '\n' + message.text
+                else:
+                    accept_text = 'Bet is accepted:\n'
+                    accept_text += flag + '\n' + message.text
+                bot.send_message(message.chat.id, accept_text)
+            else:
+                if userObj['lang'] =="fa":
+                    reject_text = 'پیش‌بینی شما پذیرفته نشد. لطفا اعداد را با فرمت یاد شده وارد کنید.\n'
+                else:
+                    reject_text = 'Bet was not accepted. Please follow the mentioned format.'
+                bot.send_message(message.chat.id, reject_text)
+                show_bets(message)
 
             isNewBet = True
             for i in range(len(bets)):
