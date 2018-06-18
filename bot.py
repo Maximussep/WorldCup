@@ -550,17 +550,19 @@ def group_bets(matchId, flags):
             for bets in userObj['bets']:
                 if bets['matchId'] == matchId:
                     thisUser = bot.get_chat(userId)
-                    msg_text += thisUser.first_name
-                    if thisUser.last_name is not None:
+                    if isinstance(thisUser.first_name, str):
+                        msg_text += thisUser.first_name
+                    if isinstance(thisUser.last_name, str):
                         msg_text += ' ' + thisUser.last_name
                     msg_text += ' ' + bets['value'] + "\n"
-        markup = types.ReplyKeyboardRemove(selective=False)
         try:
             bot.send_message(chat_id=chat['chatId'],
-                             text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.', reply_markup=markup)
+                             text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.')
         except:
             print('This chat is causing trouble in group bets:')
             print(chat)
+            print(msg_text)
+
 
 
 def update_tot_scores():
