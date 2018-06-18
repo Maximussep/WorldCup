@@ -396,9 +396,6 @@ def bet_time(message):
                 if m['matchId'] == matchId:
                     flag = m['flags']
             result = betValue.split(':')
-            print(result)
-            print(ord('0'))
-            print(ord('9'))
             if 47 < ord(result[0])<58 and 47<ord(result[1])<58:
                 if userObj['lang'] =="fa":
                     accept_text = 'پیش‌بینی شما پذیرفته شد:\n'
@@ -414,6 +411,7 @@ def bet_time(message):
                     reject_text = 'Bet was not accepted. Please follow the mentioned format.'
                 bot.send_message(message.chat.id, reject_text)
                 show_bets(message)
+                return 0
 
             isNewBet = True
             for i in range(len(bets)):
