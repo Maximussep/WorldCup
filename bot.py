@@ -383,6 +383,7 @@ def bet_time(message):
             group_bets(matchId, commandParts[3])
         elif commandParts[2] != 'O':
             update_tot_scores()
+            update_ranks()
 
 
 
@@ -472,7 +473,8 @@ def group_bets(matchId, flags):
             bot.send_message(chat_id=chat['chatId'],
                              text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.', reply_markup=markup)
         except:
-            pass
+            print('This chat is causing trouble in group bets:')
+            print(chat)
 
 
 def update_tot_scores():
@@ -526,6 +528,27 @@ def update_tot_scores():
             '$set': {'score': score}
         }
         db.setUserFields(user['userId'], user['userId'], updateObj)
+
+
+def update_ranks():
+    allUsers = db.loadAllUsers()
+    sortedUsers = sorted(allUsers, key=itemgetter('score'), reverse=True)
+    user_no = 1
+    last_rank = 1
+    last_score = sortedUsers[1]['score']
+    for user in sortedUsers:
+        if user['score'] == last_score:
+            updateObj = {
+                '$set': {'rank': last_rank}
+            }
+        else:
+            updateObj = {
+                '$set': {'rank': user_no}
+            }
+            last_rank = user_no
+        db.setUserFields(user['userId'], user['userId'], updateObj)
+        user_no += 1
+        last_score = user['score']
 
 
 bot.polling()

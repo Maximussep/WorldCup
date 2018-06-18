@@ -78,7 +78,7 @@ def getUser(chatId, userId):
     userObj = userCollection.find_one(filterObj)
     if userObj == None:
         updateObj = {
-            '$set': {'userId': userId, 'first': [], 'last': [], 'bets': [], 'score': 0, 'toBetMatchId': '', 'lang': "fa"}
+            '$set': {'userId': userId, 'first': [], 'last': [], 'bets': [], 'score': 0, 'rank':0, 'toBetMatchId': '', 'lang': "fa"}
         }
         setUserFields(chatId, userId, updateObj)  # set the default values for the user
         userObj = userCollection.find_one(filterObj)
@@ -103,6 +103,12 @@ def getUser(chatId, userId):
     if 'score' not in userObj.keys():
         updateObj = {
             '$set': {'score': 0}
+        }
+        setUserFields(chatId, userId, updateObj)  # set the default values for the user
+        userObj = userCollection.find_one(filterObj)
+    if 'rank' not in userObj.keys():
+        updateObj = {
+            '$set': {'rank': 0}
         }
         setUserFields(chatId, userId, updateObj)  # set the default values for the user
         userObj = userCollection.find_one(filterObj)
