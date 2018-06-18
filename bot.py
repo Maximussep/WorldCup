@@ -120,7 +120,7 @@ def show_games(message):
             bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
         except:
             print('This user is causing trouble in show_games:')
-            print(user)
+            print(userObj)
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(chat_id=message.from_user.id, text="""\
@@ -193,7 +193,7 @@ def make_table(message):
             thisUser = bot.get_chat(user['userId'])
         except:
             print('This user is causing trouble in make_table:')
-            print(user)
+            print(thisUser)
         line_text = ''
         length = 0
         line_text += str(row) + '. '
