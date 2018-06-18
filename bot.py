@@ -193,7 +193,7 @@ def make_table(message):
             thisUser = bot.get_chat(user['userId'])
         except:
             print('This user is causing trouble in make_table:')
-            print(thisUser)
+            print(user)
         line_text = ''
         length = 0
         line_text += str(row) + '. '
@@ -392,6 +392,7 @@ def bet_time(message):
             bets = userObj['bets']
             betValue = message.text
 
+            flag = ''
             for m in matches:
                 if m['matchId'] == matchId:
                     flag = m['flags']
