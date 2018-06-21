@@ -480,6 +480,7 @@ def bet_time(message):
             if 'final' in message.text:
                 matchInd = int(matchId)
                 tot = np.sum(count_scores, axis=1)
+                print('Total Predictors: ' + str(tot[matchInd]))
                 count_text = 'پایان بازی:' + '\n'
                 count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
                 count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
