@@ -9,8 +9,8 @@ from pymongo import MongoClient
 
 client = MongoClient()
 
-MongoDB_URI = os.environ['MONGODB_URI']
-# MongoDB_URI = 'mongodb://localhost:27017/testdb'
+# MongoDB_URI = os.environ['MONGODB_URI']
+MongoDB_URI = 'mongodb://localhost:27017/testdb'
 DB_NAME = MongoDB_URI.split('/')[-1]
 
 client = MongoClient(MongoDB_URI)

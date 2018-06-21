@@ -14,9 +14,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -118,7 +118,8 @@ def show_games(message):
             markup.row(itembtn1)
         try:
             bot.send_message(chat_id=message.from_user.id, text= open_text, reply_markup=markup)
-        except:
+        except Exception as e:
+            logger.error(e)
             print('This user is causing trouble in show_games:')
             print(userObj)
     else:
@@ -243,15 +244,16 @@ def overall_table(message):
     sortedUsers = sorted(usersThisChat, key=itemgetter('score'), reverse=True)
     row = 1
     msg_text = 'R  '+'Name'
-    msg_text += '                 ' + 'Points\n' #24 spaces
+    msg_text += '                 ' + 'Points\n'  # 24 spaces
     msg_text += '________________________\n'
     msg_text += '1. Highest Score         ' + str(highest_score)+'\n'
     for user in sortedUsers:
         try:
             thisUser = bot.get_chat(user['userId'])
-        except:
+        except Exception as e:
             print('This user is causing trouble in make_table:')
             print(thisUser)
+            logger.error(e)
             continue
         line_text = ''
         length = 0
@@ -273,7 +275,6 @@ def overall_table(message):
         line_text += str(user['score'])
         msg_text += line_text + '\n'
     bot.send_message(message.chat.id, msg_text)
-
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
@@ -399,7 +400,10 @@ def bet_time(message):
                 if m['matchId'] == matchId:
                     flag = m['flags']
             result = betValue.split(':')
-            if 47 < ord(result[0])<58 and 47<ord(result[1])<58:
+            try:
+                home = int(result[0])
+                away = int(result[1])
+                betValue = str(home)+':'+str(away)
                 if userObj['lang'] =="fa":
                     accept_text = 'پیش‌بینی شما پذیرفته شد:\n'
                     accept_text += flag + '\n' + message.text
@@ -407,7 +411,7 @@ def bet_time(message):
                     accept_text = 'Bet is accepted:\n'
                     accept_text += flag + '\n' + message.text
                 bot.send_message(message.chat.id, accept_text)
-            else:
+            except:
                 if userObj['lang'] =="fa":
                     reject_text = 'پیش‌بینی شما پذیرفته نشد. لطفا اعداد را با فرمت یاد شده وارد کنید.\n'
                 else:
@@ -471,8 +475,37 @@ def bet_time(message):
         if commandParts[2] == 'C':
             group_bets(matchId, commandParts[3])
         elif commandParts[2] != 'O':
-            update_tot_scores()
+            count_scores = update_tot_scores()
             update_ranks()
+            if 'final' in message.text:
+                matchInd = int(matchId)
+                tot = np.sum(count_scores, axis=1)
+                count_text = 'پایان بازی:' + '\n'
+                count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
+                count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
+                count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][0]/tot[matchInd]*100))) + '\n'
+                count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.floor(count_scores[matchInd][1]/tot[matchInd]*100))) + '\n'
+                count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.floor(count_scores[matchInd][2]/tot[matchInd]*100))) + '\n'
+                count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.floor(count_scores[matchInd][3]/tot[matchInd]*100))) + '\n'
+                count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][4]/tot[matchInd]*100))) + '\n'
+                count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][5]/tot[matchInd]*100))) + '\n'
+                count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][6]/tot[matchInd]*100))) + '\n'
+                allUsers = db.loadAllUsers()
+                for user in allUsers:
+                    try:
+                        bot.send_message(chat_id=user['userId'], text=count_text)
+                    except:
+                        pass
+                allChats = db.loadAllChats()
+                for chat in allChats:
+                    try:
+                        bot.send_message(chat_id=chat['chatId'], text=count_text)
+                    except:
+                        pass
+
+
+
+
 
 
 
@@ -493,7 +526,8 @@ def bet_time(message):
                 markup = types.ReplyKeyboardRemove(selective=False)
                 try:
                     bot.send_message(chat_id=user['userId'], text=msg_text + ' /openbets', reply_markup=markup)
-                except:
+                except Exception as e:
+                    logger.error(e)
                     pass
         if commandParts[1] == 'a' or commandParts[1] == 'g':
             allChats = db.loadAllChats()
@@ -507,7 +541,8 @@ def bet_time(message):
                 markup = types.ReplyKeyboardRemove(selective=False)
                 try:
                     bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
-                except:
+                except Exception as e:
+                    logger.error(e)
                     print('This user is causing trouble in bet_time:')
                     print(user)
 
@@ -561,7 +596,8 @@ def group_bets(matchId, flags):
         try:
             bot.send_message(chat_id=chat['chatId'],
                              text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.')
-        except:
+        except Exception as e:
+            logger.error(e)
             print('This chat is causing trouble in group bets:')
             print(chat)
             print(msg_text)
@@ -571,6 +607,7 @@ def group_bets(matchId, flags):
 def update_tot_scores():
     allMatches = db.loadAllMatches()
     allUsers = db.loadAllUsers()
+    count_scores = [[0 for x in range(7)] for y in range(64)]
     for user in allUsers:
         thisUserBets = user['bets']
         score = 0
@@ -593,6 +630,7 @@ def update_tot_scores():
                         loserFinal = int(final[0])
                     userBet = bet['value'].split(':')
                     drawUser = 0
+                    matchInd = int(match['matchId'])
                     if int(userBet[0]) == int(userBet[1]):
                         drawUser = 1
                         winnerUser = int(userBet[0])
@@ -605,20 +643,29 @@ def update_tot_scores():
                         loserUser = int(userBet[0])
                     if winnerUser == winnerFinal and loserUser==loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
                         score += 25
+                        count_scores[matchInd][0] += 1
                     elif winnerUser == winnerFinal and loserUser!=loserFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 18
+                        count_scores[matchInd][1] += 1
                     elif winnerUser-loserUser == winnerFinal-loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
                         score += 15
+                        count_scores[matchInd][2] += 1
                     elif loserUser == loserFinal and winnerUser!=winnerFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 12
+                        count_scores[matchInd][3] += 1
                     elif (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
                         score += 10
+                        count_scores[matchInd][4] += 1
                     elif winnerUser == loserUser:
                         score += 4
+                        count_scores[matchInd][5] += 1
+                    else:
+                        count_scores[matchInd][6] += 1
         updateObj = {
             '$set': {'score': score}
         }
         db.setUserFields(user['userId'], user['userId'], updateObj)
+    return count_scores
 
 
 def update_ranks():
