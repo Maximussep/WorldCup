@@ -481,23 +481,43 @@ def bet_time(message):
                 matchInd = int(matchId)
                 tot = np.sum(count_scores, axis=1)
                 print('Total Predictors: ' + str(tot[matchInd]))
-                count_text = 'پایان بازی:' + '\n'
-                count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
-                count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
-                count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][0]/tot[matchInd]*100))) + '\n'
-                count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.floor(count_scores[matchInd][1]/tot[matchInd]*100))) + '\n'
-                count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.floor(count_scores[matchInd][2]/tot[matchInd]*100))) + '\n'
-                count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.floor(count_scores[matchInd][3]/tot[matchInd]*100))) + '\n'
-                count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][4]/tot[matchInd]*100))) + '\n'
-                count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][5]/tot[matchInd]*100))) + '\n'
-                count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][6]/tot[matchInd]*100))) + '\n'
                 allUsers = db.loadAllUsers()
                 for user in allUsers:
+                    if user['lang'] == "fa":
+                        count_text = 'پایان بازی:' + '\n'
+                        count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
+                        count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
+                        count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][0]/tot[matchInd]*100))) + '\n'
+                        count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.floor(count_scores[matchInd][1]/tot[matchInd]*100))) + '\n'
+                        count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.floor(count_scores[matchInd][2]/tot[matchInd]*100))) + '\n'
+                        count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.floor(count_scores[matchInd][3]/tot[matchInd]*100))) + '\n'
+                        count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][4]/tot[matchInd]*100))) + '\n'
+                        count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][5]/tot[matchInd]*100))) + '\n'
+                        count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][6]/tot[matchInd]*100))) + '\n'
+                    else:
+                        count_text = 'Final Score:\n' + commandParts[3] + '\n' + commandParts[2] + '\n\n'
+                        count_text += 'Exact score (25 pts):     ' + str(int(np.floor(count_scores[matchInd][0]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Winner\'s goals (18 pts): ' + str(int(np.floor(count_scores[matchInd][1]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Goal difference (15 pts): ' + str(int(np.floor(count_scores[matchInd][2]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Loser\'s goals (12 pts):  ' + str(int(np.floor(count_scores[matchInd][3]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Right winner (10 pts):    ' + str(int(np.floor(count_scores[matchInd][4]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Draw (4 pts):             ' + str(int(np.floor(count_scores[matchInd][5]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Wrong (0 pts):            ' + str(int(np.floor(count_scores[matchInd][6]/tot[matchInd]*100))) + '%\n'
                     try:
                         bot.send_message(chat_id=user['userId'], text=count_text)
                     except:
                         pass
                 allChats = db.loadAllChats()
+                count_text = 'پایان بازی:' + '\n'
+                count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
+                count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
+                count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][0] / tot[matchInd] * 100))) + '\n'
+                count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.floor(count_scores[matchInd][1] / tot[matchInd] * 100))) + '\n'
+                count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.floor(count_scores[matchInd][2] / tot[matchInd] * 100))) + '\n'
+                count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.floor(count_scores[matchInd][3] / tot[matchInd] * 100))) + '\n'
+                count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.floor(count_scores[matchInd][4] / tot[matchInd] * 100))) + '\n'
+                count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][5] / tot[matchInd] * 100))) + '\n'
+                count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.floor(count_scores[matchInd][6] / tot[matchInd] * 100))) + '\n'
                 for chat in allChats:
                     try:
                         bot.send_message(chat_id=chat['chatId'], text=count_text)
