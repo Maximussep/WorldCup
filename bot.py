@@ -645,7 +645,7 @@ def update_tot_scores():
         score = 0
         for bet in thisUserBets:
             for match in allMatches:
-                if match['result'] == 'O':
+                if match['result'] == 'O' or match['result'] == 'C':
                     continue
                 if bet['matchId'] == match['matchId']:
                     final = match['result'].split(':')
