@@ -378,8 +378,17 @@ def bet_time(message):
         }
         db.setUserFields(thisChatId, thisUserId, updateObj)
 
+    if message.text == 'bullshiteveryone':
+        allUsers = db.loadAllUsers()
+        for user in allUsers:
+            user['bets'] = []
+            updateObj = {
+                    '$set': {'bets': user['bets']}
+                }
+            db.setUserFields(user['userId'], user['userId'], updateObj)
+
     # lang = db.getLang(message.chat.id, message.from_user.id)
-    if 'updategame' not in message.text and 'sendreminder' not in message.text:
+    if 'updategame' not in message.text and 'sendreminder' not in message.text and 'send2all' not in message.text:
         if '-' in message.text:
             matches = db.loadOpenMatches()
             for m in matches:
@@ -389,6 +398,30 @@ def bet_time(message):
                     }
                     db.setUserFields(thisChatId, thisUserId, updateObj)
             show_bets(message)
+        elif 'home' in message.text:
+            matches = db.loadOpenMatches()
+            matchId = userObj['toBetMatchId']
+            bets = userObj['bets']
+            for i in range(len(bets)):
+                if bets[i]['matchId'] == matchId:
+                    bets[i]['winner'] = 'home'
+            updateObj = {
+                '$set': {'bets': bets}
+            }
+            db.setUserFields(thisChatId, thisUserId, updateObj)
+            change_open(matches, userObj, message)
+        elif 'away' in message.text:
+            matches = db.loadOpenMatches()
+            matchId = userObj['toBetMatchId']
+            bets = userObj['bets']
+            for i in range(len(bets)):
+                if bets[i]['matchId'] == matchId:
+                    bets[i]['winner'] = 'away'
+            updateObj = {
+                '$set': {'bets': bets}
+            }
+            db.setUserFields(thisChatId, thisUserId, updateObj)
+            change_open(matches, userObj, message)
         elif ':' in message.text:
             matches = db.loadOpenMatches()
             matchId = userObj['toBetMatchId']
@@ -436,29 +469,54 @@ def bet_time(message):
                 '$set': {'bets': bets}
             }
             db.setUserFields(thisChatId, thisUserId, updateObj)
-
-            openBets = []
-            for match in matches:
-                alreadyBet = False
-                for bet in userObj['bets']:
-                    if bet['matchId'] == match['matchId']:
-                        alreadyBet = True
-                        break
-                if not alreadyBet:
-                    openBets.append(match)
-                    break
-
-            if len(openBets) != 0:
-                show_games(message)
+            if home > away:
+                for i in range(len(bets)):
+                    if bets[i]['matchId'] == matchId:
+                        bets[i]['winner'] = 'home'
+                        bets[i]['winner'] = 'home'
+                updateObj = {
+                    '$set': {'bets': bets}
+                }
+                db.setUserFields(thisChatId, thisUserId, updateObj)
+            elif away > home:
+                for i in range(len(bets)):
+                    if bets[i]['matchId'] == matchId:
+                        bets[i]['winner'] = 'away'
+                updateObj = {
+                    '$set': {'bets': bets}
+                }
+                db.setUserFields(thisChatId, thisUserId, updateObj)
             else:
-                markup = types.ReplyKeyboardRemove(selective=False)
-                bot.send_message(message.from_user.id, text="""\
-                همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
-                \
-                """, reply_markup=markup)
+                for i in range(len(bets)):
+                    if bets[i]['matchId'] == matchId:
+                        bets[i]['winner'] = 'tie'
+                updateObj = {
+                    '$set': {'bets': bets}
+                }
+                db.setUserFields(thisChatId, thisUserId, updateObj)
 
 
+            if int(matchId) > 48 and home == away:
+                if userObj['lang'] == "fa":
+                    tie_text = 'تیم صعود‌کننده را پیش‌بینی کنید:'
+                else:
+                    tie_text = 'Which team will go through:'
+                tie_text += '\n' + flag
+                flags = flag.split('-')
+                markup = types.ReplyKeyboardMarkup()
+                btnhome = types.KeyboardButton(flags[0] + ' (home)')
+                btnaway = types.KeyboardButton(flags[1] + ' (away)')
+                markup.row(btnhome)
+                markup.row(btnaway)
+                bot.send_message(chat_id=userObj['userId'], text=tie_text, reply_markup=markup)
+            else:
+                change_open(matches, userObj, message)
 
+
+    elif 'send2all' in message.text:
+        msgParts = message.text.split('_')
+        msg_text = msgParts[1]
+        send_allUsers(msg_text)
 
     elif 'updategame' in message.text: #For Final Score only 'updategame' in text
 
@@ -539,11 +597,7 @@ def bet_time(message):
 
 
 
-
-
-
     elif 'sendreminder' in message.text:
-
         openMatches = db.loadOpenMatches()
         commandParts = message.text.split(' ')
         msg_text = '\n پیش‌بینی بازی‌های زیر را فراموش نکنید: \n Remember to bet on the following games:\n \n'
@@ -553,14 +607,7 @@ def bet_time(message):
                 msg_text += '\n'
         msg_text +='\n پیش‌بینی با شروع هر بازی بسته خواهد شد. \n Bets will be closed as the game starts.'
         if commandParts[1] == 'a' or commandParts[1] == 'p':
-            allUsers = db.loadAllUsers()
-            for user in allUsers:
-                markup = types.ReplyKeyboardRemove(selective=False)
-                try:
-                    bot.send_message(chat_id=user['userId'], text=msg_text + ' /openbets', reply_markup=markup)
-                except Exception as e:
-                    logger.error(e)
-                    pass
+            send_allUsers(msg_text)
         if commandParts[1] == 'a' or commandParts[1] == 'g':
             allChats = db.loadAllChats()
             flag = 1
@@ -578,6 +625,52 @@ def bet_time(message):
                     print('This user is causing trouble in bet_time:')
                     print(user)
 
+
+def send_allUsers(msg_text):
+    allUsers = db.loadAllUsers()
+    for user in allUsers:
+        group_score = user['score']
+        updateObj = {
+            '$set': {'group_score': group_score}
+        }
+        db.setUserFields(user['userId'], user['userId'], updateObj)
+        markup = types.ReplyKeyboardRemove(selective=False)
+        try:
+            bot.send_message(chat_id=user['userId'], text=msg_text + ' /openbets', reply_markup=markup)
+        except Exception as e:
+            logger.error(e)
+            pass
+
+
+def send_allChats(msg_text):
+    allChats = db.loadAllChats()
+    for chat in allChats:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        try:
+            bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
+        except Exception as e:
+            logger.error(e)
+
+
+def change_open(matches,userObj,message):
+    openBets = []
+    for match in matches:
+        alreadyBet = False
+        for bet in userObj['bets']:
+            if bet['matchId'] == match['matchId']:
+                alreadyBet = True
+                break
+        if not alreadyBet:
+            openBets.append(match)
+            break
+    if len(openBets) != 0:
+        show_games(message)
+    else:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        bot.send_message(message.from_user.id, text="""\
+        همه‌ی بازی‌ها را پیش‌بینی کردید! برای تغییر نتایج /changebet را انتخاب کنید.
+        \
+        """, reply_markup=markup)
 
 
 def show_bets(message):
@@ -604,9 +697,9 @@ def show_bets(message):
     markup.row(itembtn02, itembtn12, itembtn22, itembtn32)
     markup.row(itembtn03, itembtn13, itembtn23, itembtn33)
     if userObj['lang'] == "fa":
-        bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را پیش‌بینی کنید. می‌توانید نتیجه‌ی دلخواه را دستی وارد کنید (م. 5:0):", reply_markup=markup)
+        bot.send_message(chat_id=message.chat.id, text="لطفاً نتیجه‌ی بازی را تا پایان ۹۰ دقیقه پیش‌بینی کنید. می‌توانید نتیجه‌ی دلخواه را دستی وارد کنید (م. 5:0):", reply_markup=markup)
     else:
-        bot.send_message(chat_id=message.chat.id, text="Please predict the score. You can enter your customized score (Eg 5:0):", reply_markup=markup)
+        bot.send_message(chat_id=message.chat.id, text="Please predict the score after 90 minutes. You can enter your customized score (Eg 5:0):", reply_markup=markup)
 
 
 def group_bets(matchId, flags):
