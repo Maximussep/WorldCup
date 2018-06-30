@@ -231,7 +231,7 @@ def new_scoring(message):
                         a = 4
                     else:
                         a = 0
-                    points[int(match['matchId'])] = a
+                    points[int(match['matchId'])-1] = a
         updateObj = {
             '$set': {'points': points}
         }
