@@ -10,13 +10,14 @@ import db
 import os
 from operator import itemgetter, attrgetter, methodcaller
 import logging
+import emoji
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -167,6 +168,76 @@ def set_language(message):
     db.setUserFields(message.chat.id, message.from_user.id, updateObj)
     markup = types.ReplyKeyboardRemove(selective=False)
     bot.send_message(message.chat.id, "زبان بات فارسی انتخاب شد!", reply_markup=markup)
+
+
+@bot.message_handler(commands=['updatetotalscores'])
+def new_scoring(message):
+    allMatches = db.loadAllMatches()
+    allUsers = db.loadAllUsers()
+    for user in allUsers:
+        points = [0 for x in range(64)]
+        thisUserBets = user['bets']
+        for bet in thisUserBets:
+            for match in allMatches:
+                if match['result'] == 'O' or match['result'] == 'C':
+                    continue
+                if bet['matchId'] == match['matchId']:
+                    final = match['result'].split(':')
+                    if '*' in final[0]:
+                        match['winner'] = 'home'
+                        final[0] = final[0].replace("*" ,"")
+                    elif '*' in final[1]:
+                        match['winner'] = 'away'
+                        final[1] = final[1].replace("*" ,"")
+                    drawFinal = 0
+                    if int(final[0]) == int(final[1]):
+                        drawFinal = 1
+                        winnerFinal = int(final[0])
+                        loserFinal = int(final[0])
+                    elif int(final[0]) > int(final[1]):
+                        winnerFinal = int(final[0])
+                        loserFinal = int(final[1])
+                    else:
+                        winnerFinal = int(final[1])
+                        loserFinal = int(final[0])
+                    userBet = bet['value'].split(':')
+                    drawUser = 0
+                    matchInd = int(match['matchId'])
+                    if int(userBet[0]) == int(userBet[1]):
+                        drawUser = 1
+                        winnerUser = int(userBet[0])
+                        loserUser = int(userBet[0])
+                    elif int(userBet[0]) > int(userBet[1]):
+                        winnerUser = int(userBet[0])
+                        loserUser = int(userBet[1])
+                    else:
+                        winnerUser = int(userBet[1])
+                        loserUser = int(userBet[0])
+                    if winnerUser == winnerFinal and loserUser == loserFinal and (int(userBet[0]) - int(userBet[1])) * (
+                            int(final[0]) - int(final[1])) >= 0:
+                        a = 25
+                    elif winnerUser == winnerFinal and loserUser != loserFinal and drawUser - drawFinal == 0 and (
+                            int(userBet[0]) - int(userBet[1])) * (int(final[0]) - int(final[1])) > 0:
+                        a = 18
+                    elif winnerUser - loserUser == winnerFinal - loserFinal and (int(userBet[0]) - int(userBet[1])) * (
+                            int(final[0]) - int(final[1])) >= 0:
+                        a = 15
+                    elif loserUser == loserFinal and winnerUser != winnerFinal and drawUser - drawFinal == 0 and (
+                            int(userBet[0]) - int(userBet[1])) * (int(final[0]) - int(final[1])) > 0:
+                        a = 12
+                    elif (int(userBet[0]) - int(userBet[1])) * (int(final[0]) - int(final[1])) > 0:
+                        a = 10
+                    elif winnerUser == loserUser:
+                        a = 4
+                    else:
+                        a = 0
+                    points[int(match['matchId'])] = a
+        updateObj = {
+            '$set': {'points': points}
+        }
+        db.setUserFields(user['userId'], user['userId'], updateObj)
+    return 0
+
 
 
 @bot.message_handler(commands=['table'])
@@ -704,6 +775,7 @@ def show_bets(message):
 
 def group_bets(matchId, flags):
     allChats = db.loadAllChats()
+    flaglr = flags.split('-')
     for chat in allChats:
         msg_text = 'ییش‌بینی‌ها برای بازی:'
         msg_text += '\nHere are the bets for the game:'
@@ -717,7 +789,11 @@ def group_bets(matchId, flags):
                         msg_text += thisUser.first_name
                     if isinstance(thisUser.last_name, str):
                         msg_text += ' ' + thisUser.last_name
-                    msg_text += ' ' + bets['value'] + "\n"
+                    msg_text += ' ' + bets['value'] + ' '
+                    if bets['winner'] == 'home':
+                        msg_text += return_flag(flaglr[0]) + '\n'
+                    elif bets['winner'] == 'away':
+                        msg_text += return_flag(flaglr[1]) + '\n'
         try:
             bot.send_message(chat_id=chat['chatId'],
                              text=msg_text + '\nپیش‌بینی برای این بازی بسته شد. اگر پیش‌بینی شما در لیست نیست /ImIn را انتخاب کنید.')
@@ -812,6 +888,19 @@ def update_ranks():
         db.setUserFields(user['userId'], user['userId'], updateObj)
         user_no += 1
         last_score = user['score']
+
+
+def return_flag(s):
+    england = "🏴\\U000e0067\\U000e0062\\U000e0065\\U000e006e\\U000e0067\\U000e007"
+    if england in s:
+        return england
+    ind = 0
+    flag = ''
+    for character in s:
+        if ord(character) > 122:
+            flag += character
+            ind += 1
+    return flag
 
 
 bot.polling()
