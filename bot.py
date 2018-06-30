@@ -185,10 +185,10 @@ def new_scoring(message):
                     final = match['result'].split(':')
                     if '*' in final[0]:
                         match['winner'] = 'home'
-                        final[0] = final[0].replace("*" ,"")
+                        final[0] = final[0].replace("*", "")
                     elif '*' in final[1]:
                         match['winner'] = 'away'
-                        final[1] = final[1].replace("*" ,"")
+                        final[1] = final[1].replace("*", "")
                     drawFinal = 0
                     if int(final[0]) == int(final[1]):
                         drawFinal = 1
@@ -237,7 +237,6 @@ def new_scoring(message):
         }
         db.setUserFields(user['userId'], user['userId'], updateObj)
     return 0
-
 
 
 @bot.message_handler(commands=['table'])
@@ -627,22 +626,22 @@ def bet_time(message):
                         count_text = 'پایان بازی:' + '\n'
                         count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
                         count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
-                        count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.ceil(count_scores[matchInd][0]/tot[matchInd]*100))) + '\n'
-                        count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.ceil(count_scores[matchInd][1]/tot[matchInd]*100))) + '\n'
-                        count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.ceil(count_scores[matchInd][2]/tot[matchInd]*100))) + '\n'
-                        count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.ceil(count_scores[matchInd][3]/tot[matchInd]*100))) + '\n'
-                        count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.ceil(count_scores[matchInd][4]/tot[matchInd]*100))) + '\n'
-                        count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.ceil(count_scores[matchInd][5]/tot[matchInd]*100))) + '\n'
-                        count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.ceil(count_scores[matchInd][6]/tot[matchInd]*100))) + '\n'
+                        count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.round(count_scores[matchInd][0]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.round(count_scores[matchInd][1]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.round(count_scores[matchInd][2]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.round(count_scores[matchInd][3]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.round(count_scores[matchInd][4]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.round(count_scores[matchInd][5]/tot[matchInd]*100, decimals=0))) + '\n'
+                        count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.round(count_scores[matchInd][6]/tot[matchInd]*100, decimals=0))) + '\n'
                     else:
                         count_text = 'Final Score:\n' + commandParts[3] + '\n' + commandParts[2] + '\n\n'
-                        count_text += 'Exact score (25 pts):     ' + str(int(np.ceil(count_scores[matchInd][0]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Winner\'s goals (18 pts): ' + str(int(np.ceil(count_scores[matchInd][1]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Goal difference (15 pts): ' + str(int(np.ceil(count_scores[matchInd][2]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Loser\'s goals (12 pts):  ' + str(int(np.ceil(count_scores[matchInd][3]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Right winner (10 pts):    ' + str(int(np.ceil(count_scores[matchInd][4]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Draw (4 pts):             ' + str(int(np.ceil(count_scores[matchInd][5]/tot[matchInd]*100))) + '%\n'
-                        count_text += 'Wrong (0 pts):            ' + str(int(np.ceil(count_scores[matchInd][6]/tot[matchInd]*100))) + '%\n'
+                        count_text += 'Exact score (25 pts):     ' + str(int(np.round(count_scores[matchInd][0]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Winner\'s goals (18 pts): ' + str(int(np.round(count_scores[matchInd][1]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Goal difference (15 pts): ' + str(int(np.round(count_scores[matchInd][2]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Loser\'s goals (12 pts):  ' + str(int(np.round(count_scores[matchInd][3]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Right winner (10 pts):    ' + str(int(np.round(count_scores[matchInd][4]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Draw (4 pts):             ' + str(int(np.round(count_scores[matchInd][5]/tot[matchInd]*100, decimals=0))) + '%\n'
+                        count_text += 'Wrong (0 pts):            ' + str(int(np.round(count_scores[matchInd][6]/tot[matchInd]*100, decimals=0))) + '%\n'
                     try:
                         bot.send_message(chat_id=user['userId'], text=count_text)
                     except:
@@ -651,13 +650,13 @@ def bet_time(message):
                 count_text = 'پایان بازی:' + '\n'
                 count_text += commandParts[3] + '\n' + commandParts[2] + '\n\n'
                 count_text += 'از مجموع کل پیش‌بینی‌کننده‌ها:' + '\n'
-                count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.ceil(count_scores[matchInd][0] / tot[matchInd] * 100))) + '\n'
-                count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.ceil(count_scores[matchInd][1] / tot[matchInd] * 100))) + '\n'
-                count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.ceil(count_scores[matchInd][2] / tot[matchInd] * 100))) + '\n'
-                count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.ceil(count_scores[matchInd][3] / tot[matchInd] * 100))) + '\n'
-                count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.ceil(count_scores[matchInd][4] / tot[matchInd] * 100))) + '\n'
-                count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.ceil(count_scores[matchInd][5] / tot[matchInd] * 100))) + '\n'
-                count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.ceil(count_scores[matchInd][6] / tot[matchInd] * 100))) + '\n'
+                count_text += 'نتیجه‌ی دقیق (۲۵ امتیاز):          ' + '٪' + str(int(np.round(count_scores[matchInd][0] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'تعداد گل‌های برنده (۱۸ امتیاز):    ' + '٪' + str(int(np.round(count_scores[matchInd][1] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'اختلاف گل (۱۵ امتیاز):             ' + '٪' + str(int(np.round(count_scores[matchInd][2] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'تعداد گل‌های بازنده (۱۲ امتیاز):   ' + '٪' + str(int(np.round(count_scores[matchInd][3] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'برنده‌ی درست (۱۰ امتیاز):          ' + '٪' + str(int(np.round(count_scores[matchInd][4] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'مساوی (۴ امتیاز):                    ' + '٪' + str(int(np.round(count_scores[matchInd][5] / tot[matchInd] * 100, decimals=0))) + '\n'
+                count_text += 'اشتباه (۰ امتیاز):                    ' + '٪' + str(int(np.round(count_scores[matchInd][6] / tot[matchInd] * 100, decimals=0))) + '\n'
                 for chat in allChats:
                     try:
                         bot.send_message(chat_id=chat['chatId'], text=count_text)
@@ -723,7 +722,7 @@ def send_allChats(msg_text):
             logger.error(e)
 
 
-def change_open(matches,userObj,message):
+def change_open(matches, userObj, message):
     openBets = []
     for match in matches:
         alreadyBet = False
@@ -804,12 +803,12 @@ def group_bets(matchId, flags):
             print(msg_text)
 
 
-
 def update_tot_scores():
     allMatches = db.loadAllMatches()
     allUsers = db.loadAllUsers()
     count_scores = [[0 for x in range(7)] for y in range(64)]
     for user in allUsers:
+        points = [0 for x in range(64)]
         thisUserBets = user['bets']
         score = 0
         for bet in thisUserBets:
@@ -818,6 +817,12 @@ def update_tot_scores():
                     continue
                 if bet['matchId'] == match['matchId']:
                     final = match['result'].split(':')
+                    if '*' in final[0]:
+                        match['winner'] = 'home'
+                        final[0] = final[0].replace("*", "")
+                    elif '*' in final[1]:
+                        match['winner'] = 'away'
+                        final[1] = final[1].replace("*", "")
                     drawFinal = 0
                     if int(final[0]) == int(final[1]):
                         drawFinal = 1
@@ -843,27 +848,53 @@ def update_tot_scores():
                         winnerUser = int(userBet[1])
                         loserUser = int(userBet[0])
                     if winnerUser == winnerFinal and loserUser==loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
-                        score += 25
+                        a = 25
                         count_scores[matchInd][0] += 1
                     elif winnerUser == winnerFinal and loserUser!=loserFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
-                        score += 18
+                        a = 18
                         count_scores[matchInd][1] += 1
                     elif winnerUser-loserUser == winnerFinal-loserFinal and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>=0:
-                        score += 15
+                        a = 15
                         count_scores[matchInd][2] += 1
                     elif loserUser == loserFinal and winnerUser!=winnerFinal and drawUser-drawFinal==0 and (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
-                        score += 12
+                        a = 12
                         count_scores[matchInd][3] += 1
                     elif (int(userBet[0])-int(userBet[1]))*(int(final[0])-int(final[1]))>0:
-                        score += 10
+                        a = 10
                         count_scores[matchInd][4] += 1
                     elif winnerUser == loserUser:
-                        score += 4
+                        a = 4
                         count_scores[matchInd][5] += 1
                     else:
+                        a = 0
                         count_scores[matchInd][6] += 1
+                    if int(match['matchId']) < 49:
+                        score += a
+                    elif 48 < int(match['matchId']) < 57:
+                        score += a
+                        print(bet)
+                        print(match)
+                        if bet['winner'] == match['winner']:
+                            score += 15
+                    elif 56 < int(match['matchId']) < 61:
+                        score += 2*a
+                        if bet['winner'] == match['winner']:
+                            score += 30
+                    elif 60 < int(match['matchId']) < 63:
+                        score += 3*a
+                        if bet['winner'] == match['winner']:
+                            score += 45
+                    elif int(match['matchId']) == 63:
+                        score += 4*a
+                        if bet['winner'] == match['winner']:
+                            score += 60
+                    elif int(match['matchId']) == 64:
+                        score += 5*a
+                        if bet['winner'] == match['winner']:
+                            score += 75
+                    points[int(match['matchId']) - 1] = a
         updateObj = {
-            '$set': {'score': score}
+            '$set': {'score': score, 'points': points}
         }
         db.setUserFields(user['userId'], user['userId'], updateObj)
     return count_scores
