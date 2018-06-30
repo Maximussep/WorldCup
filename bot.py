@@ -872,8 +872,6 @@ def update_tot_scores():
                         score += a
                     elif 48 < int(match['matchId']) < 57:
                         score += a
-                        print(bet)
-                        print(match)
                         if bet['winner'] == match['winner']:
                             score += 15
                     elif 56 < int(match['matchId']) < 61:
