@@ -692,8 +692,8 @@ def bet_time(message):
                     bot.send_message(chat_id=chat['chatId'], text=msg_text + ' @WorldCup1818bot', reply_markup=markup)
                 except Exception as e:
                     logger.error(e)
-                    print('This user is causing trouble in bet_time:')
-                    print(user)
+                    print('This user is causing trouble in sendreminder:')
+                    print(chat)
 
 
 def send_allUsers(msg_text):
