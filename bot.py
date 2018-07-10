@@ -883,13 +883,13 @@ def update_tot_scores():
                         if bet['winner'] == match['winner']:
                             score += 45
                     elif int(match['matchId']) == 63:
+                        score += 3*a
+                        if bet['winner'] == match['winner']:
+                            score += 45
+                    elif int(match['matchId']) == 64:
                         score += 4*a
                         if bet['winner'] == match['winner']:
                             score += 60
-                    elif int(match['matchId']) == 64:
-                        score += 5*a
-                        if bet['winner'] == match['winner']:
-                            score += 75
                     points[int(match['matchId']) - 1] = a
         updateObj = {
             '$set': {'score': score, 'points': points}
