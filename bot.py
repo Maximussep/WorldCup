@@ -15,9 +15,9 @@ import emoji
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-API_TOKEN = os.environ['TELEGRAM_TOKEN']
+# API_TOKEN = os.environ['TELEGRAM_TOKEN']
 # API_TOKEN = "602234037:AAEnaoUclYiYF_7E7mP3zerwxWDX2Ldrw_E"
-# API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
+API_TOKEN = "450979982:AAEymX_wZh5kX1JD1-Ekb0CrF_xdCl-4LEQ"
 
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -202,7 +202,7 @@ def new_scoring(message):
                         loserFinal = int(final[0])
                     userBet = bet['value'].split(':')
                     drawUser = 0
-                    matchInd = int(match['matchId'])
+                    matchInd = int(match['matchId']) - 1
                     if int(userBet[0]) == int(userBet[1]):
                         drawUser = 1
                         winnerUser = int(userBet[0])
@@ -292,7 +292,6 @@ def make_table(message):
     bot.send_message(message.chat.id, msg_text)
 
 
-
 @bot.message_handler(commands=['overall'])
 def overall_table(message):
     if message.chat.id == message.from_user.id: #It's not a group message!
@@ -345,6 +344,12 @@ def overall_table(message):
         line_text += str(user['score'])
         msg_text += line_text + '\n'
     bot.send_message(message.chat.id, msg_text)
+
+
+#@bot.message_handler(commands=['detail'])
+#def detail_table(message):
+
+
 
 
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
@@ -617,7 +622,7 @@ def bet_time(message):
             count_scores = update_tot_scores()
             update_ranks()
             if 'final' in message.text:
-                matchInd = int(matchId)
+                matchInd = int(matchId) - 1
                 tot = np.sum(count_scores, axis=1)
                 print('Total Predictors: ' + str(tot[matchInd]))
                 allUsers = db.loadAllUsers()
@@ -662,9 +667,66 @@ def bet_time(message):
                         bot.send_message(chat_id=chat['chatId'], text=count_text)
                     except:
                         pass
+                if int(commandParts[1]) == 64:
+                    for user in allUsers:
+                        temp = detail_points(user['userId'])
+                        detail_table_msg = 'Rank   Name\n \t \t \tES WG GD LG CW T TOT\n-----------------------------------\n'
+                        detail_table_msg += str(user['rank']) +'. '
+                        if isinstance(user['first'], str):
+                            detail_table_msg += user['first'] + ' '
+                        if isinstance(user['last'], str):
+                            detail_table_msg += user['last']
+                        detail_table_msg += '\n \t \t \t '+str(temp[0])+'   '+str(temp[1])+'   '+str(
+                            temp[2])+'   '+str(temp[3])+'   '+str(temp[4])+'   '+str(
+                            temp[5])+'   '+str(user['score'])
+                        if(user['lang'] == "fa"):
+                            detail_table_msg += '\n\nES: نتیجه‌ی دقیق'
+                            detail_table_msg += '\nWG: تعداد گل برنده'
+                            detail_table_msg += '\nGD: اختلاف گل'
+                            detail_table_msg += '\nLG: تعداد گل بازنده'
+                            detail_table_msg += '\nCW: برنده‌ی صحیح'
+                            detail_table_msg += '\nT: مساوی'
+                            detail_table_msg += '\nTOT: جمع امتیازات'
+                        else:
+                            detail_table_msg += '\n\nES: Exact Score'
+                            detail_table_msg += '\nWG: Winner\'s Goals'
+                            detail_table_msg += '\nGD: Goal Difference'
+                            detail_table_msg += '\nLG: Loser\'s Goals'
+                            detail_table_msg += '\nCW: Correct Winner'
+                            detail_table_msg += '\nT: Tie'
+                            detail_table_msg += '\nTOT: Total Points'
 
-
-
+                        try:
+                            bot.send_message(chat_id=user['userId'], text=detail_table_msg)
+                        except:
+                            pass
+                    for chat in allChats:
+                        detail_table_msg = 'Rank   Name\n \t \t \tES WG GD LG CW T TOT\n-----------------------------------\n'
+                        usersThisChat = []
+                        for userId in chat['users']:
+                            usersThisChat.append(db.getUser(userId, userId))
+                        sortedUsers = sorted(usersThisChat, key=itemgetter('score'), reverse=True)
+                        for user in sortedUsers:
+                            temp = detail_points(user['userId'])
+                            detail_table_msg += str(user['rank']) + '. '
+                            if isinstance(user['first'], str):
+                                detail_table_msg += user['first'] + ' '
+                            if isinstance(user['last'], str):
+                                detail_table_msg += user['last']
+                            detail_table_msg += '\n \t \t \t ' + str(temp[0]) + '   ' + str(temp[1]) + '   ' + str(
+                                temp[2]) + '   ' + str(temp[3]) + '   ' + str(temp[4]) + '   ' + str(
+                                temp[5]) + '   ' + str(user['score'])+'\n'
+                        detail_table_msg += '\n\nES: نتیجه‌ی دقیق'
+                        detail_table_msg += '\nWG: تعداد گل برنده'
+                        detail_table_msg += '\nGD: اختلاف گل'
+                        detail_table_msg += '\nLG: تعداد گل بازنده'
+                        detail_table_msg += '\nCW: برنده‌ی صحیح'
+                        detail_table_msg += '\nT: مساوی'
+                        detail_table_msg += '\nTOT: جمع امتیازات'
+                        try:
+                            bot.send_message(chat_id=chat['chatId'], text=detail_table_msg)
+                        except:
+                            pass
 
 
     elif 'sendreminder' in message.text:
@@ -836,7 +898,7 @@ def update_tot_scores():
                         loserFinal = int(final[0])
                     userBet = bet['value'].split(':')
                     drawUser = 0
-                    matchInd = int(match['matchId'])
+                    matchInd = int(match['matchId']) - 1
                     if int(userBet[0]) == int(userBet[1]):
                         drawUser = 1
                         winnerUser = int(userBet[0])
@@ -917,6 +979,19 @@ def update_ranks():
         db.setUserFields(user['userId'], user['userId'], updateObj)
         user_no += 1
         last_score = user['score']
+
+
+def detail_points(userId):
+    userObj = db.getUser(userId, userId)
+    points = userObj['points']
+    a = []
+    a.append(points.count(25))
+    a.append(points.count(18))
+    a.append(points.count(15))
+    a.append(points.count(12))
+    a.append(points.count(10))
+    a.append(points.count(4))
+    return a
 
 
 def return_flag(s):
