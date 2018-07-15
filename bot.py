@@ -433,7 +433,37 @@ def my_points(message):
         msg_text += str(user['rank'])
         msg_text += '\nHighest Score: '
         msg_text += str(highest_score)
-    bot.reply_to(message,msg_text)
+    bot.reply_to(message, msg_text)
+    temp = detail_points(user['userId'])
+    detail_table_msg = 'Rank   Name\n \t \t \tES WG GD LG CW T TOT\n-----------------------------------\n'
+    detail_table_msg += str(user['rank']) + '. '
+    if isinstance(user['first'], str):
+        detail_table_msg += user['first'] + ' '
+    if isinstance(user['last'], str):
+        detail_table_msg += user['last']
+    detail_table_msg += '\n \t \t \t ' + str(temp[0]) + '   ' + str(temp[1]) + '   ' + str(
+        temp[2]) + '   ' + str(temp[3]) + '   ' + str(temp[4]) + '   ' + str(
+        temp[5]) + '   ' + str(user['score'])
+    if (user['lang'] == "fa"):
+        detail_table_msg += '\n\nES: نتیجه‌ی دقیق'
+        detail_table_msg += '\nWG: تعداد گل برنده'
+        detail_table_msg += '\nGD: اختلاف گل'
+        detail_table_msg += '\nLG: تعداد گل بازنده'
+        detail_table_msg += '\nCW: برنده‌ی صحیح'
+        detail_table_msg += '\nT: مساوی'
+        detail_table_msg += '\nTOT: جمع امتیازات'
+    else:
+        detail_table_msg += '\n\nES: Exact Score'
+        detail_table_msg += '\nWG: Winner\'s Goals'
+        detail_table_msg += '\nGD: Goal Difference'
+        detail_table_msg += '\nLG: Loser\'s Goals'
+        detail_table_msg += '\nCW: Correct Winner'
+        detail_table_msg += '\nT: Tie'
+        detail_table_msg += '\nTOT: Total Points'
+    try:
+        bot.send_message(chat_id=user['userId'], text=detail_table_msg)
+    except:
+        pass
 
 
 @bot.message_handler(func=lambda message: True)
